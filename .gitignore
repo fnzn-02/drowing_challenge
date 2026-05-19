@@ -1,0 +1,16 @@
+# Backend (Spring)
+backend/*         
+!backend/src/
+backend/src/main/resources/application.yml
+backend/src/main/resources/application.properties
+
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store

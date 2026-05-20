@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    //private final EmailService emailService;
 
     public void signup(SignupDto signupDto){
 
         // 이메일 인증 여부 확인
-        if(!emailService.isVerified(signupDto.getEmail())){
-            throw new IllegalArgumentException("이메일 인증이 필요합니다.");
-        }
+        //if(!emailService.isVerified(signupDto.getEmail())){
+       //     throw new IllegalArgumentException("이메일 인증이 필요합니다.");
+        //}
 
         // 이메일 중복 확인
         User userEmail = userRepository.findByEmail(signupDto.getEmail());

@@ -14,7 +14,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    //private final EmailService emailService;
+    private final EmailService emailService;
 
     public void signup(SignupDto signupDto) {
         if (!emailService.isVerified(signupDto.getEmail())) {

@@ -1,0 +1,125 @@
+/* src/pages/viewDrawing.css */
+
+.reels-container {
+  width: 1000px;
+  height: 100vh;
+  background-color: #000000; 
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory; 
+  scroll-behavior: smooth;
+  scrollbar-width: none; 
+}
+
+.reels-container::-webkit-scrollbar {
+  display: none;
+}
+
+.reels-card {
+  position: relative;
+  width: 100%;
+  height: 100vh; 
+  scroll-snap-align: start; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.reels-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; 
+  background-color: #111;
+}
+
+.medal-badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 12px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.medal-badge.gold { background-color: #ffd700; color: #000; }
+.medal-badge.silver { background-color: #c0c0c0; color: #000; }
+.medal-badge.bronze { background-color: #cd7f32; color: #fff; }
+
+.reels-side-actions {
+  position: absolute;
+  right: 15px;
+  bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 10;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.action-button .icon {
+  font-size: 28px;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.6));
+  transition: transform 0.1s ease;
+}
+
+.action-button:hover .icon {
+  transform: scale(1.1);
+}
+
+.action-button .count {
+  color: #ffffff;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+.reels-bottom-info {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 40px 20px 30px 20px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  color: #ffffff;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.challenge-tag {
+  display: inline-block;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  backdrop-filter: blur(5px);
+}
+
+.user-nickname {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.drawing-comment {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+  color: #e1e1e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical;
+}

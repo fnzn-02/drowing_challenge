@@ -4,6 +4,7 @@ import com.example.backend.dto.LoginDto;
 import com.example.backend.dto.SignupDto;
 import com.example.backend.entity.User;
 //import com.example.backend.service.EmailService;
+import com.example.backend.service.EmailService;
 import com.example.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
-    //private final EmailService emailService;
+    private final EmailService emailService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupDto signupDto) {

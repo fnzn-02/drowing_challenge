@@ -1,33 +1,41 @@
 package com.example.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class User implements Serializable {
+public class Drawing {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "challenge_id", nullable = false)
+    private Challenge challenge;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
-    @JsonIgnore
-    private String password;
+    private String imagePath;
 
-    @Column(unique = true, nullable = false)
-    private String nickname;
+    @Column(length = 200)
+    private String comment;
+
+    @Column(columnDefinition = "INT DEFAULT 0")
+    private int likeCount;
+
+    @Column(length = 10)
+    private String medal; // GOLD / SILVER / BRONZE / null
 
     @CreationTimestamp
     private LocalDateTime createdAt;

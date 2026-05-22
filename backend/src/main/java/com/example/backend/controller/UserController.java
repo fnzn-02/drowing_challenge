@@ -1,11 +1,16 @@
 package com.example.backend.controller;
 
+import com.example.backend.entity.Drawing;
 import com.example.backend.entity.User;
+import com.example.backend.service.DrawingService;
 import com.example.backend.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -13,16 +18,28 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final DrawingService drawingService;
 
+    // GET /mypage — 내 정보 + 제출 그림 목록 + 참여한 챌린지 목록
     @GetMapping
     public ResponseEntity<?> getMyPage(HttpSession session){
-        // 세션에서 로그인한 유저 정보 꺼내서 반환
         User user = (User) session.getAttribute("loginUser");
         if(user == null){
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
+
+        // 최신 유저 정보 조회
         User freshUser = userService.getUserByEmail(user.getEmail());
-        return ResponseEntity.ok(freshUser);
+
+        // 내가 제출한 그림 목록
+        List<Drawing> myDrawings = drawingService.getDrawingsByUser(freshUser.getId());
+
+        // 응답 데이터 조합
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("user", freshUser);
+        response.put("drawings", myDrawings);
+
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/nickname")

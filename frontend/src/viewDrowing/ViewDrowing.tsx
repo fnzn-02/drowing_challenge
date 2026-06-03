@@ -1,110 +1,46 @@
-// src/pages/ViewDrawing.tsx
-import React, { useState, useEffect } from "react";
-import { mockPageData } from "./mockData.js";
+import { useState, useEffect } from "react";
+import api from 'axios';
 import "./viewDrowing.css";
 
-// 1. 🌟 TypeScript 환경을 위한 인터페이스(타입) 정의
-interface UserType {
-  nickname: string;
-  email: string;
-}
 
-interface ChallengeType {
-  title: string;
-}
-
-interface DrowingType {
+//DB테이블을 토대로 데이터가 온다고 가정하고 만든거임
+interface Drowing {
   id: number;
-  imagePath: string;
   comment: string;
+  imagePath: string;
   likeCount: number;
-  medal: "GOLD" | "SILVER" | "BRONZE" | null; // 구체적인 리터럴 타입 지정
-  createdAt: string;
-  user: UserType;
-  challenge: ChallengeType;
+  medal: string;
+  challengeId: number;
+  userId: number;
 }
 
-// 목업 데이터 구조의 타입을 위한 인터페이스
-interface PageDataType {
-  content: DrowingType[];
-  isLast: boolean;
-}
 
-const ViewDrawing: React.FC = () => {
-  // 2. 🌟 가짜 데이터와 상태 배열에 명확한 제네릭 타입 부여
-  const [drawings, setDrawings] = useState<DrowingType[]>([]);
-  const [page, setPage] = useState<number>(0);
-  const [isLast, setIsLast] = useState<boolean>(false);
+const ViewDrawing = () => {
+  const [drawings, setDrawings] = useState<Drowing[]>([]);
 
-  // 3. 최초 로드 시 0번 페이지 데이터 주입
   useEffect(() => {
-    // mockPageData를 인덱스 시그니처로 안전하게 접근하기 위해 타입 캐스팅
-    const typedMockData = mockPageData as Record<number, PageDataType>;
-    const firstData = typedMockData[0];
-    
-    if (firstData) {
-      setDrawings(firstData.content);
-      setIsLast(firstData.isLast);
-    }
+    const fetchDrowing = async () => {
+      try {
+        const response = await api.get('http://localhost:5173/drowings'); //임시로 public폴더 아래 drowings 목업파일로 연결해둠 추후 백엔드 주소만 넣으면 정상작동
+        setDrawings(response.data);
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+      }
+    };
+    fetchDrowing();
   }, []);
-
-  // 4. 프리페칭(미리 가져오기) 함수
-  const fetchNextPage = (): void => {
-    if (isLast) return;
-
-    const nextPage = page + 1;
-    const typedMockData = mockPageData as Record<number, PageDataType>;
-    const nextData = typedMockData[nextPage];
-
-    if (nextData) {
-      setDrawings((prev) => [...prev, ...nextData.content]);
-      setIsLast(nextData.isLast);
-      setPage(nextPage);
-    }
-  };
-
-  // 5. Intersection Observer를 통한 마지막에서 2번째 카드 감시 (프리페칭 트리거)
-  useEffect(() => {
-    if (isLast || drawings.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    // 마지막에서 2번째 카드의 ID를 타겟으로 지정
-    const targetIndex = drawings.length - 2;
-    const targetId = drawings[targetIndex]?.id;
-    const targetElement = document.getElementById(`card-${targetId}`);
-
-    if (targetElement) {
-      observer.observe(targetElement);
-    }
-
-    // 다음 카드가 세팅되면 이전 감시 대상은 연결 해제(Clean-up)
-    return () => observer.disconnect();
-  }, [drawings, isLast, page]);
 
   return (
     <div className="reels-container">
-      {drawings.map((drawing: DrowingType) => (
+      {drawings.map(drawing => (
         <div key={drawing.id} id={`card-${drawing.id}`} className="reels-card">
-          
-          {/* 1. 이미지 메인 뷰 */}
           <img src={drawing.imagePath} alt={`drawing-${drawing.id}`} className="reels-image" />
-
-          {/* 2. 메달 (조건부 렌더링) */}
           {drawing.medal && (
             <div className={`medal-badge ${drawing.medal.toLowerCase()}`}>
               {drawing.medal}
             </div>
           )}
 
-          {/* 3. 우측 액션 레이아웃 */}
           <div className="reels-side-actions">
             <div className="action-button">
               <span className="icon">❤️</span>
@@ -118,8 +54,8 @@ const ViewDrawing: React.FC = () => {
 
           {/* 4. 하단 정보 뷰 */}
           <div className="reels-bottom-info">
-            <div className="challenge-tag">🏆 {drawing.challenge.title}</div>
-            <div className="user-nickname">@{drawing.user.nickname}</div>
+            <div className="challenge-tag">🏆 {drawing.challengeId}</div>
+            <div className="user-nickname">@{drawing.userId}</div>
             <p className="drawing-comment">{drawing.comment}</p>
           </div>
 

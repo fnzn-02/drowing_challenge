@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import Drawing from './components/Drawing'
-
 import './App.css'
+import ViewDrawing from './viewDrowing/ViewDrowing'
+import Drawing from './components/Drawing'
 
 function App() {
 
   return (
-    <Drawing />
+    <div>
+      <ViewDrawing/>
+      <Drawing />
+    </div>
   )
 }
 

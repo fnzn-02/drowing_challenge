@@ -1,7 +1,6 @@
 
 import './App.css'
-import { useState } from 'react'
-import ViewDrawing from './viewDrowing/ViewDrowing'
+import ViewDrawing from './components/viewDrowing/ViewDrowing'
 import Drawing from './components/Drawing'
 import Signup from './components/components1/Signup'
 

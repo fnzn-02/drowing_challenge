@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import "./Drawing.css";
 
-const Drawing: React.FC = () => {
+
+const Drawing = () => {
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);

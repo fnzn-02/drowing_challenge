@@ -1,8 +1,8 @@
 # Backend (Spring)
 backend/*         
-!backend/src/
-backend/src/main/resources/application.yml
-backend/src/main/resources/application.properties
+# !backend/src/
+# backend/src/main/resources/application.yml
+# backend/src/main/resources/application.properties
 
 
 # Frontend (React/Vite)

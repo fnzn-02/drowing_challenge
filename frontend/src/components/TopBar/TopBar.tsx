@@ -9,28 +9,10 @@ const TopBar = () => {
 
     return (
         <header className="top-bar">
-            <div className="top-bar-logo" onClick={() => navigate("/mainpage")}>
+            <div className="top-bar-logo" onClick={() => navigate("/")}>
                 🎨 DrawingMarket
             </div>
             <nav className="top-bar-menu">
-                <button 
-                    className={`nav-button ${isActive("/mainpage")}`} 
-                    onClick={() => navigate("/mainpage")}
-                >
-                    챌린지 목록
-                </button>
-                <button 
-                    className={`nav-button ${isActive("/view")}`} 
-                    onClick={() => navigate("/view")}
-                >
-                    그림 릴스 뷰
-                </button>
-                <button 
-                    className={`nav-button ${isActive("/drawing")}`} 
-                    onClick={() => navigate("/drawing")}
-                >
-                    그림 그리기
-                </button>
                 <button 
                     className={`nav-button ${isActive("/signup")}`} 
                     onClick={() => navigate("/signup")}

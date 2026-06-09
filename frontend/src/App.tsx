@@ -12,7 +12,7 @@ function App() {
       <TopBar />
 
       <Routes>
-        <Route path="/mainpage" element={<MainPage />} />
+        <Route path="/" element={<MainPage />} />
         <Route path="/view" element={<ViewDrawing />} />
         <Route path="/drawing" element={<Drawing />} />
         <Route path="/signup" element={<Signup />} />

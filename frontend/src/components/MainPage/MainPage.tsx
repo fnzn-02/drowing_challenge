@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from 'axios';
+import { useNavigate } from "react-router-dom";
 import "./MainPage.css";
 
 interface Challenges {
@@ -14,6 +15,7 @@ interface Challenges {
 
 const MainPage = () => {
     const [challenges, setChallenges] = useState<Challenges[]>([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchChallenge = async () => {
@@ -32,7 +34,7 @@ const MainPage = () => {
             <h1 className="page-title">🏆 진행 중인 챌린지</h1>
             <div className="challenge-list">
                 {challenges.map(challenge => (
-                    <div key={challenge.id} className="challenge-bar-card">
+                    <div key={challenge.id} className="challenge-bar-card" onClick={() => navigate("/view")}>
                         <div className="challenge-title-section">
                             <span className="challenge-badge">{challenge.status}</span>
                             <h3 className="challenge-title">{challenge.title}</h3>

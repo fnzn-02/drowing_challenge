@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from 'axios';
 import "./viewDrowing.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 interface Drowing {
   id: number;
@@ -16,12 +16,13 @@ interface Drowing {
 const ViewDrawing = () => {
   const [drawings, setDrawings] = useState<Drowing[]>([]);
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDrowing = async () => {
       try {
         const response = await api.get('http://localhost:5173/drowings');
-        
+
         if (id) {
           const filteredData = response.data.filter(
             (item: Drowing) => item.challengeId === Number(id)
@@ -39,6 +40,14 @@ const ViewDrawing = () => {
 
   return (
     <div className="reels-container">
+      {/* 🚨 좌측 상단 플로팅 그림그리기 버튼 추가 (탑바 디자인 버튼 스타일 적용) */}
+      <button 
+        className="nav-button floating-draw-btn" 
+        onClick={() => navigate("/drawing")}
+      >
+        ✏️ 그림 그리기
+      </button>
+
       {drawings.map(drawing => (
         <div key={drawing.id} id={`card-${drawing.id}`} className="reels-card">
           <img src={drawing.imagePath} alt={`drawing-${drawing.id}`} className="reels-image" />
@@ -61,7 +70,7 @@ const ViewDrawing = () => {
 
           <div className="reels-bottom-info">
             <div className="challenge-tag">🏆 {drawing.challengeId}</div>
-            <div className="user-nickname">@{drawing.userId}</div>
+            <div className="user-nickname">ID: {drawing.userId}</div>
             <p className="drawing-comment">{drawing.comment}</p>
           </div>
         </div>

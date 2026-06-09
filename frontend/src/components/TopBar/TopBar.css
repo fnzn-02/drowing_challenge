@@ -1,0 +1,53 @@
+/* src/components/TopBar/TopBar.css */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 60px;
+    /* 🚨 밝은 반투명 배경으로 전환 */
+    background-color: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border);
+    z-index: 9999;
+}
+
+.top-bar-logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-h); /* 어두운 로고 텍스트 */
+    cursor: pointer;
+    user-select: none;
+}
+
+.top-bar-menu {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    color: var(--text); /* 일반 글자색 */
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    color: var(--text-h);
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.nav-button.active {
+    color: #ffffff;
+    background-color: var(--accent); /* 포인트 보라색 유지 */
+}

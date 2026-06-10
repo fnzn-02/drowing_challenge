@@ -6,7 +6,7 @@
   height: 100vh;
   margin: 0;
   padding: 0;
-  background-color: #1a1a1a; /* 릴스 박스(블랙)와 대비되는 약간 밝은 배경 */
+  background-color: #fff;
   
   /* 🌟 자식을 정중앙으로 정렬하는 핵심 치트키 3줄 */
   display: flex;

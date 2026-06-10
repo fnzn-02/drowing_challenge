@@ -1,4 +1,4 @@
-.signup-container {
+.login-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -6,7 +6,7 @@
   padding: 24px;
 }
 
-.signup-box {
+.login-box {
   width: 100%;
   max-width: 600px;
   background: var(--bg);
@@ -16,63 +16,23 @@
   box-shadow: var(--shadow);
 }
 
-.signup-title {
+.login-title {
   margin: 0 0 24px;
   color: var(--text-h);
 }
 
-.signup-steps {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 28px;
-}
-
-.step {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: var(--text);
-  font-weight: 500;
-}
-
-.step.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.step-line {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-  max-width: 48px;
-}
-
-.signup-form {
+.login-form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.signup-desc {
-  font-size: 14px;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.signup-input {
+.login-input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 16px;
   color: var(--text-h);
   background: var(--bg);
   box-sizing: border-box;
@@ -80,33 +40,33 @@
   transition: border-color 0.15s;
 }
 
-.signup-input:focus {
+.login-input:focus {
   border-color: var(--accent);
 }
 
-.signup-btn {
+.login-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.15s;
 }
 
-.signup-btn:disabled {
+.login-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.signup-btn:hover:not(:disabled) {
+.login-btn:hover:not(:disabled) {
   opacity: 0.85;
 }
 
-.signup-btn-secondary {
+.login-btn-secondary {
   width: 100%;
   padding: 10px;
   background: transparent;
@@ -118,12 +78,12 @@
   transition: border-color 0.15s;
 }
 
-.signup-btn-secondary:hover {
+.login-btn-secondary:hover {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.signup-error {
+.login-error {
   margin-top: 12px;
   font-size: 14px;
   color: #ef4444;

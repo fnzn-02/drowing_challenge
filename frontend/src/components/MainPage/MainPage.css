@@ -1,0 +1,103 @@
+.main-page-container {
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    padding-top: 60px; /* 탑바 높이만큼 콘텐츠를 아래로 밀어줌 */
+    overflow-y: auto;  /* 스크롤바가 탑바 하단선부터 생기도록 제한 */
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 40px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    color: var(--text-h, #333);
+}
+
+.challenge-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.challenge-bar-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border: 1px solid var(--border, #e1e1e1);
+    border-radius: 12px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.challenge-bar-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-title-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 250px;
+    text-align: left;
+}
+
+.challenge-badge {
+    align-self: flex-start;
+    background-color: #e3faf2;
+    color: #0ca678;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.challenge-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+}
+
+.challenge-desc-section {
+    flex: 2;
+    padding: 0 20px;
+    text-align: left;
+}
+
+.challenge-description {
+    font-size: 14px;
+    color: #495057;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.challenge-date-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 180px;
+}
+
+.date-label {
+    font-size: 11px;
+    color: #868e96;
+}
+
+.challenge-date {
+    font-size: 13px;
+    font-weight: 500;
+    color: #495057;
+    white-space: nowrap;
+}

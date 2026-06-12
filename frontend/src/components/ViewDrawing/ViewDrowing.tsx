@@ -23,7 +23,9 @@ const ViewDrawing = () => {
   useEffect(() => {
     const fetchDrowing = async () => {
       try {
-        const response = await api.get('http://localhost:5173/drowings');
+        const response = await api.get('http://localhost:5173/drowings',{
+          params:{challengeId: id}
+        });
 
         if (id) {
           const filteredData = response.data.filter(

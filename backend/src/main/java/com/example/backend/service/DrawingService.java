@@ -6,6 +6,8 @@ import com.example.backend.entity.Drawing;
 import com.example.backend.entity.User;
 import com.example.backend.repository.ChallengeRepository;
 import com.example.backend.repository.DrawingRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -85,7 +87,7 @@ public class DrawingService {
         // 5. DB 저장
         // medal은 챌린지 종료 시 스케줄러가 자동으로 부여하므로 초기값은 null
         Drawing drawing = new Drawing(null, challenge, user,
-                "/uploads/" + fileName, comment, 0, null, null);
+                "/uploads/" + fileName, comment, 0, null, null, null);
         Drawing saved = drawingRepository.save(drawing);
 
         log.info("[DrawingService] 그림 제출 완료 - drawingId: {}, imagePath: {}", saved.getId(), saved.getImagePath());
@@ -117,6 +119,7 @@ public class DrawingService {
      * @param userId    조회할 유저 ID (프론트에서 보낸 user_id)
      * @return 조건에 맞는 DrawingResponseDto 객체 배열 (0개 또는 1개)
      */
+    @Transactional
     public List<DrawingResponseDto> getDrawingsByChallenge(Long challengeId) {
         log.info("[DrawingService] 챌린지별 그림 목록 조회 요청 - challengeId: {}", challengeId);
 

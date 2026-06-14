@@ -53,6 +53,7 @@ public class DrawingResponseDto {
 
     /** 프론트로 넘길 중첩 객체들 */
     private UserInfoDto user;
+    private final int commentCount;
     private ChallengeInfoDto challenge;
 
     /**
@@ -68,6 +69,7 @@ public class DrawingResponseDto {
         this.imagePath = drawing.getImagePath();
         this.likeCount = drawing.getLikeCount();
         this.medal = drawing.getMedal();
+        this.commentCount = drawing.getComments() != null ? drawing.getComments().size() : 0;
 
         // ORM 객체 그래프 탐색을 통해 한방에 조립
         if (drawing.getUser() != null) {
@@ -84,12 +86,10 @@ public class DrawingResponseDto {
     public static class UserInfoDto {
         private final Long id;
         private final String nickname;
-        private final String email;
 
         public UserInfoDto(User user) {
             this.id = user.getId();
             this.nickname = user.getNickname();
-            this.email = user.getEmail();
         }
     }
     @Getter

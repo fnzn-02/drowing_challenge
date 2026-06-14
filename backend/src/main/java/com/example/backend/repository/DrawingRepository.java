@@ -40,6 +40,7 @@ public interface DrawingRepository extends JpaRepository<Drawing, Long> {
      * @return 해당 유저가 제출한 그림 목록
      */
     List<Drawing> findByUserId(Long userId);
+    void deleteByUserId(Long userId);
 
     /**
      * [추가됨] 그림 ID + 유저 ID 복합 조건으로 그림 단건 조회.

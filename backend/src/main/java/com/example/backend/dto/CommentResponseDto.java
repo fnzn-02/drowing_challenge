@@ -24,12 +24,10 @@ public class CommentResponseDto {
     public static class UserInfoDto {
         private final Long id;
         private final String nickname;
-        private final String email;
 
         public UserInfoDto(User user) {
             this.id = user.getId();
             this.nickname = user.getNickname();
-            this.email = user.getEmail();
         }
     }
 

@@ -30,6 +30,7 @@ interface Drowing {
   user: User;
   comments?: Comment[];
   isLiked?: boolean;
+  commentCount?: number;
 }
 
 const ViewDrawing = () => {
@@ -47,12 +48,12 @@ const ViewDrawing = () => {
           return;
         }
 
-        const response = await api.get(`http://localhost:8080/challenges/${id}/drawings`);
+        const response = await api.get(`http://localhost:8080/challenges/${id}/drawings`, { withCredentials: true });
         const fetchedDrawings: Drowing[] = response.data;
 
         const statusPromises = fetchedDrawings.map(async (drawing) => {
           try {
-            const statusResponse = await api.get(`http://localhost:8080/drawings/${drawing.id}/likes/status`);
+            const statusResponse = await api.get(`http://localhost:8080/drawings/${drawing.id}/likes/status`, { withCredentials: true });
             return { ...drawing, isLiked: statusResponse.data.liked };
           } catch (error) {
             console.error(`좋아요 상태 로딩 실패 (ID: ${drawing.id}):`, error);
@@ -81,7 +82,7 @@ const ViewDrawing = () => {
     setCommentText("");
 
     try {
-      const response = await api.get(`http://localhost:8080/drawings/${drawingId}/comments`);
+      const response = await api.get(`http://localhost:8080/drawings/${drawingId}/comments`, { withCredentials: true });
       
       setDrawings(prevDrawings => 
         prevDrawings.map(drawing => 
@@ -97,7 +98,7 @@ const ViewDrawing = () => {
 
   const toggleLike = async (drawingId: number) => {
     try {
-      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/likes`);
+      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/likes`, {}, { withCredentials: true });
       const resultMessage = response.data.message;
       const isCancel = resultMessage.includes("취소");
 
@@ -113,6 +114,7 @@ const ViewDrawing = () => {
           return drawing;
         })
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response?.status === 401) {
         alert("로그인이 필요합니다.");
@@ -128,7 +130,7 @@ const ViewDrawing = () => {
     try {
       const response = await api.post(`http://localhost:8080/drawings/${drawingId}/comments`, {
         content: commentText
-      });
+      }, { withCredentials: true });
 
       const newComment = response.data;
 
@@ -146,6 +148,7 @@ const ViewDrawing = () => {
 
       setCommentText("");
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response?.status === 401) {
         alert("로그인이 필요합니다.");
@@ -170,7 +173,7 @@ const ViewDrawing = () => {
           <div key={drawing.id} id={`card-${drawing.id}`} className="reels-card">
             
             <div className={`reels-media-box ${isCommentsOpen ? "shrink" : ""}`}>
-              <img src={drawing.imagePath} alt={`drawing-${drawing.id}`} className="reels-image" />
+              <img src={`http://localhost:8080${drawing.imagePath}`} alt={`drawing-${drawing.id}`} className="reels-image" />
             </div>
 
             {drawing.medal && (
@@ -189,7 +192,7 @@ const ViewDrawing = () => {
               
               <div className="action-button" onClick={() => toggleComments(drawing.id)}>
                 <span className="icon">💬</span>
-                <span className="count">{drawing.comments?.length || 0}</span>
+                <span className="count">{drawing.comments?.length ?? drawing.commentCount ?? 0}</span>
               </div>
             </div>
 

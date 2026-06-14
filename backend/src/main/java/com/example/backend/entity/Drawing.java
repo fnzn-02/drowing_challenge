@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter @Setter
@@ -36,6 +37,9 @@ public class Drawing {
 
     @Column(length = 10)
     private String medal; // GOLD / SILVER / BRONZE / null
+
+    @OneToMany(mappedBy = "drawing", fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

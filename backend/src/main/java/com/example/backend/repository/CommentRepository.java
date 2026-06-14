@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByDrawingIdOrderByCreatedAtAsc(Long drawingId); // 그림의 댓글 목록 (오래된 순)
+    void deleteByUserId(Long userId);
 }

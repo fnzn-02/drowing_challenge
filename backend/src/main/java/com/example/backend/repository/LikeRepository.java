@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface LikeRepository extends JpaRepository<Like, Long> {
     Optional<Like> findByDrawingIdAndUserId(Long drawingId, Long userId); // 좋아요 여부 확인
     boolean existsByDrawingIdAndUserId(Long drawingId, Long userId);       // 좋아요 존재 여부
+    void deleteByUserId(Long userId);
 }

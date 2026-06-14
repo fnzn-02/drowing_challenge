@@ -3,7 +3,11 @@ package com.example.backend.service;
 import com.example.backend.dto.LoginDto;
 import com.example.backend.dto.SignupDto;
 import com.example.backend.entity.User;
+import com.example.backend.repository.CommentRepository;
+import com.example.backend.repository.DrawingRepository;
+import com.example.backend.repository.LikeRepository;
 import com.example.backend.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +18,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final DrawingRepository drawingRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     public void signup(SignupDto signupDto){
 
@@ -75,6 +82,12 @@ public class UserService {
     }
 
     public void updateNickname(User user, String nickname){
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임을 입력해주세요.");
+        }
+        if (userRepository.findByNickname(nickname) != null) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
         user.setNickname(nickname);
         userRepository.save(user);
     }
@@ -102,11 +115,17 @@ public class UserService {
         userRepository.save(user);
     }
 
+    
+
+    @Transactional
     public void deleteUser(User user, String password){
         // 비밀번호 확인
         if(!passwordEncoder.matches(password, user.getPassword())){
             throw new IllegalArgumentException("비밀번호가 틀렸습니다.");
         }
+        likeRepository.deleteByUserId(user.getId());
+        commentRepository.deleteByUserId(user.getId());
+        drawingRepository.deleteByUserId(user.getId());
         // 유저 삭제
         userRepository.delete(user);
     }

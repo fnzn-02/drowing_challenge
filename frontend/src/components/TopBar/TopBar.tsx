@@ -14,10 +14,16 @@ const TopBar = () => {
             </div>
             <nav className="top-bar-menu">
                 <button 
+                    className={`nav-button ${isActive("/login")}`} 
+                    onClick={() => navigate("/signup")}
+                >
+                    로그인
+                </button>
+                <button 
                     className={`nav-button ${isActive("/signup")}`} 
                     onClick={() => navigate("/signup")}
                 >
-                    회원가입
+                    마이페이지
                 </button>
             </nav>
         </header>

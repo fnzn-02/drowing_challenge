@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import "./Drawing.css";
 
 const API = "http://localhost:8080";
@@ -10,10 +10,11 @@ type Tool = 'pen' | 'eraser' | 'fill' | 'picker';
 const Drawing = () => {
   const { id: routeId } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const challengeId = routeId || searchParams.get("challengeId") || searchParams.get("id") || "1";
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("#000000");
   const [lineWidth, setLineWidth] = useState(5);
@@ -22,7 +23,7 @@ const Drawing = () => {
     list: [],
     index: -1,
   });
-  
+
   const [title, setTitle] = useState(() => {
     return sessionStorage.getItem("savedTitle") || "";
   });
@@ -45,16 +46,23 @@ const Drawing = () => {
         withCredentials: true,
       });
 
-      alert("등록 성공!");
       sessionStorage.removeItem("savedTitle");
+      sessionStorage.removeItem("savedDrawing");
+      navigate(`/view/${challengeId}`);
     } catch (error) {
       console.error("등록 중 오류 발생 : ", error);
       alert("등록 실패!");
     }
   };
-        
+
   useEffect(() => {
-      sessionStorage.setItem('savedTitle', title);
+    axios.get(`${API}/challenges/${challengeId}/draw/check`, { withCredentials: true })
+      .then(res => { if (res.data === true) navigate(`/view/${challengeId}`); })
+      .catch(() => {});
+  }, [challengeId, navigate]);
+
+  useEffect(() => {
+    sessionStorage.setItem('savedTitle', title);
   }, [title]);
 
   const saveToHistory = (dataUrl: string) => {
@@ -73,14 +81,14 @@ const Drawing = () => {
     if (canvas) {
       canvas.width = 800;
       canvas.height = 600;
-      
+
       const context = canvas.getContext("2d", { willReadFrequently: true });
       if (context) {
         context.lineCap = "round";
         context.lineJoin = "round";
         context.strokeStyle = color;
         context.lineWidth = lineWidth;
-        setCtx(context);
+        ctxRef.current = context;
 
         const savedDrawing = sessionStorage.getItem("savedDrawing");
         if (savedDrawing) {
@@ -107,16 +115,18 @@ const Drawing = () => {
   }, []);
 
   useEffect(() => {
+    const ctx = ctxRef.current;
     if (ctx) {
       ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
       ctx.lineWidth = lineWidth;
     }
-  }, [color, lineWidth, ctx, tool]);
+  }, [color, lineWidth, tool]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const ctx = ctxRef.current;
     if (!ctx || !canvasRef.current) return;
     const { offsetX, offsetY } = e.nativeEvent;
-    
+
     const x = Math.floor(offsetX);
     const y = Math.floor(offsetY);
 
@@ -132,6 +142,7 @@ const Drawing = () => {
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const ctx = ctxRef.current;
     if (!isDrawing || !ctx) return;
     const { offsetX, offsetY } = e.nativeEvent;
     ctx.lineTo(offsetX, offsetY);
@@ -139,6 +150,7 @@ const Drawing = () => {
   };
 
   const stopDrawing = () => {
+    const ctx = ctxRef.current;
     if (!ctx || !canvasRef.current) return;
     if (isDrawing) {
       ctx.closePath();
@@ -151,10 +163,11 @@ const Drawing = () => {
   };
 
   const clearCanvas = () => {
+    const ctx = ctxRef.current;
     if (!canvasRef.current || !ctx) return;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    
+
     const currentDrawing = canvasRef.current.toDataURL();
     sessionStorage.setItem("savedDrawing", currentDrawing);
     saveToHistory(currentDrawing);
@@ -168,6 +181,7 @@ const Drawing = () => {
   };
 
   const handleUndo = () => {
+    const ctx = ctxRef.current;
     if (historyState.index > 0 && canvasRef.current && ctx) {
       const prevIndex = historyState.index - 1;
       const prevData = historyState.list[prevIndex];
@@ -197,13 +211,14 @@ const Drawing = () => {
   };
 
   const floodFill = (startX: number, startY: number) => {
+    const ctx = ctxRef.current;
     if (!canvasRef.current || !ctx) return;
     const width = canvasRef.current.width;
     const height = canvasRef.current.height;
-    
+
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
-    
+
     const targetColor = hexToRgba(color);
     const startIdx = (startY * width + startX) * 4;
     const startR = data[startIdx];
@@ -221,7 +236,7 @@ const Drawing = () => {
     }
 
     const stack: [number, number][] = [[startX, startY]];
-    
+
     data[startIdx] = targetColor[0];
     data[startIdx + 1] = targetColor[1];
     data[startIdx + 2] = targetColor[2];
@@ -229,14 +244,14 @@ const Drawing = () => {
 
     while (stack.length > 0) {
       const [cx, cy] = stack.pop()!;
-      
-      const directions = [
+
+      const directions: [number, number][] = [
         [cx - 1, cy],
         [cx + 1, cy],
         [cx, cy - 1],
         [cx, cy + 1]
       ];
-      
+
       for (const [nx, ny] of directions) {
         if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
           const idx = (ny * width + nx) * 4;
@@ -255,15 +270,16 @@ const Drawing = () => {
         }
       }
     }
-    
+
     ctx.putImageData(imageData, 0, 0);
-    
+
     const currentDrawing = canvasRef.current.toDataURL();
     sessionStorage.setItem("savedDrawing", currentDrawing);
     saveToHistory(currentDrawing);
   };
 
   const pickColor = (x: number, y: number) => {
+    const ctx = ctxRef.current;
     if (!ctx || !canvasRef.current) return;
     const imgData = ctx.getImageData(x, y, 1, 1).data;
     const r = imgData[0];
@@ -276,10 +292,10 @@ const Drawing = () => {
 
   return (
     <div className="drawing-container">
-      <input 
-        className="title-input" 
-        onChange={(e) => setTitle(e.target.value)} 
-        placeholder="제목을 입력하세요" 
+      <input
+        className="title-input"
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="제목을 입력하세요"
         value={title}
       />
       <div className="controls">
@@ -292,31 +308,31 @@ const Drawing = () => {
             title="Change Color"
           />
         </div>
-        
+
         <div className="tool-group">
-          <button 
-            className={`tool-btn ${tool === 'pen' ? 'active' : ''}`} 
+          <button
+            className={`tool-btn ${tool === 'pen' ? 'active' : ''}`}
             onClick={() => setTool('pen')}
             title="펜"
           >
             펜
           </button>
-          <button 
-            className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`} 
+          <button
+            className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`}
             onClick={() => setTool('eraser')}
             title="지우개"
           >
             지우개
           </button>
-          <button 
-            className={`tool-btn ${tool === 'fill' ? 'active' : ''}`} 
+          <button
+            className={`tool-btn ${tool === 'fill' ? 'active' : ''}`}
             onClick={() => setTool('fill')}
             title="채우기"
           >
             채우기
           </button>
-          <button 
-            className={`tool-btn ${tool === 'picker' ? 'active' : ''}`} 
+          <button
+            className={`tool-btn ${tool === 'picker' ? 'active' : ''}`}
             onClick={() => setTool('picker')}
             title="스포이드"
           >
@@ -324,9 +340,9 @@ const Drawing = () => {
           </button>
         </div>
 
-        <button 
-          className="undo-btn" 
-          onClick={handleUndo} 
+        <button
+          className="undo-btn"
+          onClick={handleUndo}
           disabled={historyState.index <= 0}
           title="뒤로가기"
         >

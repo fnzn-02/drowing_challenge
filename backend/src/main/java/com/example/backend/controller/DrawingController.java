@@ -158,6 +158,15 @@ public class DrawingController {
      * @param id      삭제할 그림의 ID
      * @param session 로그인 세션
      */
+    @GetMapping("/challenges/{id}/draw/check")
+    public ResponseEntity<?> checkSubmitted(@PathVariable Long id, HttpSession session) {
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+        return ResponseEntity.ok(drawingService.hasSubmitted(id, loginUser.getId()));
+    }
+
     @DeleteMapping("/drawings/{id}")
     public ResponseEntity<?> deleteDrawing(@PathVariable Long id, HttpSession session) {
         log.info("[DrawingController] 그림 삭제 요청 수신 - drawingId: {}", id);

@@ -1,7 +1,6 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.CommentResponseDto;
-import com.example.backend.entity.Comment;
 import com.example.backend.entity.User;
 import com.example.backend.service.CommentService;
 import jakarta.servlet.http.HttpSession;

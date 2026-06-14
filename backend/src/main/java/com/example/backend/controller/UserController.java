@@ -16,7 +16,6 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<?> getMyPage(HttpSession session){
-        // 세션에서 로그인한 유저 정보 꺼내서 반환
         User user = (User) session.getAttribute("loginUser");
         if(user == null){
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
@@ -33,8 +32,8 @@ public class UserController {
         }
         String nickname = request.get("nickname");
         userService.updateNickname(user, nickname);
-        User updateUser = userService.getUserByEmail(user.getEmail()); // DB에서 최신 정보 꺼내오기
-        session.setAttribute("loginUser", updateUser); // 세션 갱신
+        User updateUser = userService.getUserByEmail(user.getEmail());
+        session.setAttribute("loginUser", updateUser);
         return ResponseEntity.ok("닉네임 수정 성공");
     }
 
@@ -48,8 +47,8 @@ public class UserController {
         String newPassword = request.get("newPassword");
         String newPasswordConfirm = request.get("newPasswordConfirm");
         userService.updatePassword(user, currentPassword, newPassword, newPasswordConfirm);
-        User updateUser = userService.getUserByEmail(user.getEmail()); // DB에서 최신 정보 꺼내오기
-        session.setAttribute("loginUser", updateUser); // 세션 갱신
+        User updateUser = userService.getUserByEmail(user.getEmail());
+        session.setAttribute("loginUser", updateUser);
         return ResponseEntity.ok("비밀번호 수정 성공");
     }
 
@@ -64,5 +63,4 @@ public class UserController {
         session.invalidate();
         return ResponseEntity.ok("회원탈퇴 성공");
     }
-
 }

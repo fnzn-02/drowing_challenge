@@ -37,8 +37,15 @@ const ViewDrawing = () => {
   const [drawings, setDrawings] = useState<Drowing[]>([]);
   const [activeCommentCardId, setActiveCommentCardId] = useState<number | null>(null);
   const [commentText, setCommentText] = useState<string>("");
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get('http://localhost:8080/mypage', { withCredentials: true })
+      .then(res => setCurrentUserId(res.data.id))
+      .catch(() => setCurrentUserId(null));
+  }, []);
 
   useEffect(() => {
     const fetchDrowing = async () => {
@@ -121,6 +128,27 @@ const ViewDrawing = () => {
       } else {
         console.error("좋아요 처리 실패:", error);
       }
+    }
+  };
+
+  const handleCommentDelete = async (drawingId: number, commentId: number) => {
+    try {
+      await api.delete(`http://localhost:8080/comments/${commentId}`, { withCredentials: true });
+      setDrawings(prevDrawings =>
+        prevDrawings.map(drawing => {
+          if (drawing.id === drawingId) {
+            return {
+              ...drawing,
+              comments: (drawing.comments || []).filter(c => c.id !== commentId),
+              commentCount: Math.max(0, (drawing.commentCount ?? (drawing.comments?.length ?? 0)) - 1)
+            };
+          }
+          return drawing;
+        })
+      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("댓글 삭제 실패:", error);
     }
   };
 
@@ -214,6 +242,12 @@ const ViewDrawing = () => {
                     <div key={comm.id} className="comment-item">
                       <span className="comment-user">@{comm.user?.nickname}</span>
                       <span className="comment-text">{comm.content}</span>
+                      {currentUserId === comm.user?.id && (
+                        <button
+                          onClick={() => handleCommentDelete(drawing.id, comm.id)}
+                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px', padding: '0', marginTop: '2px' }}
+                        >삭제</button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -229,7 +263,7 @@ const ViewDrawing = () => {
                   value={activeCommentCardId === drawing.id ? commentText : ""}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCommentSubmit(drawing.id);
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) handleCommentSubmit(drawing.id);
                   }}
                 />
                 <button 

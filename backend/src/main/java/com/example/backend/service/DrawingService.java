@@ -193,4 +193,9 @@ public class DrawingService {
         log.info("[DrawingService] 마이페이지 그림 목록 조회 - userId: {}", userId);
         return drawingRepository.findByUserId(userId);
     }
+
+    public boolean hasSubmitted(Long challengeId, Long userId) {
+        return drawingRepository.existsByChallengeIdAndUserId(challengeId, userId);
+    }
+
 }

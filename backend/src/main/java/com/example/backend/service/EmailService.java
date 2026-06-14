@@ -39,7 +39,7 @@ public class EmailService {
         return false;
     }
 
-    // Redis에 인증 완료 상태가 있는지 확인 (있으면 true, 없으면 false)쓰면
+    // Redis에 인증 완료 상태가 있는지 확인 (있으면 true, 없으면 false)
     public boolean isVerified(String email){
         return Boolean.TRUE.equals(redisTemplate.hasKey("VERIFIED:" + email));
     }

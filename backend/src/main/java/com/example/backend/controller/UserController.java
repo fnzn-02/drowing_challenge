@@ -33,6 +33,8 @@ public class UserController {
         }
         String nickname = request.get("nickname");
         userService.updateNickname(user, nickname);
+        User updateUser = userService.getUserByEmail(user.getEmail()); // DB에서 최신 정보 꺼내오기
+        session.setAttribute("loginUser", updateUser); // 세션 갱신
         return ResponseEntity.ok("닉네임 수정 성공");
     }
 
@@ -46,6 +48,8 @@ public class UserController {
         String newPassword = request.get("newPassword");
         String newPasswordConfirm = request.get("newPasswordConfirm");
         userService.updatePassword(user, currentPassword, newPassword, newPasswordConfirm);
+        User updateUser = userService.getUserByEmail(user.getEmail()); // DB에서 최신 정보 꺼내오기
+        session.setAttribute("loginUser", updateUser); // 세션 갱신
         return ResponseEntity.ok("비밀번호 수정 성공");
     }
 

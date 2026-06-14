@@ -37,15 +37,13 @@ function MyPage({ onClose }: MyPageProps) {
       setUser(res.data)
     } catch {
       onClose()
-      navigate('/login')
+      navigate('/login', { state: { message: '로그인이 필요합니다.' } })
     }
   }
 
   useEffect(() => {
-    axios.get(`${API}/mypage`, { withCredentials: true })
-      .then(res => setUser(res.data))
-      .catch(() => { onClose(); navigate('/login', { state: { message: '로그인이 필요합니다.' } }) })
-  }, [navigate, onClose])
+    fetchUser()
+  }, [])
 
   const handleNickname = async () => {
     setError('')

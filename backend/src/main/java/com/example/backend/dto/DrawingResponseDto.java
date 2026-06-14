@@ -1,6 +1,8 @@
 package com.example.backend.dto;
 
+import com.example.backend.entity.Challenge;
 import com.example.backend.entity.Drawing;
+import com.example.backend.entity.User;
 import lombok.Getter;
 
 /**
@@ -49,11 +51,9 @@ public class DrawingResponseDto {
     /** 메달 등급 (GOLD / SILVER / BRONZE / null). 챌린지 종료 시 스케줄러가 부여. */
     private final String medal;
 
-    /** 이 그림이 속한 챌린지의 ID (Drawing.challenge 객체에서 ID만 추출) */
-    private final Long challengeId;
-
-    /** 이 그림을 제출한 유저의 ID (Drawing.user 객체에서 ID만 추출) */
-    private final Long userId;
+    /** 프론트로 넘길 중첩 객체들 */
+    private UserInfoDto user;
+    private ChallengeInfoDto challenge;
 
     /**
      * Drawing 엔티티를 받아 DTO로 변환하는 생성자.
@@ -68,8 +68,39 @@ public class DrawingResponseDto {
         this.imagePath = drawing.getImagePath();
         this.likeCount = drawing.getLikeCount();
         this.medal = drawing.getMedal();
-        this.challengeId = drawing.getChallenge().getId(); // Challenge 객체에서 id만 꺼냄
-        this.userId = drawing.getUser().getId();           // User 객체에서 id만 꺼냄
+
+        // ORM 객체 그래프 탐색을 통해 한방에 조립
+        if (drawing.getUser() != null) {
+            this.user = new UserInfoDto(drawing.getUser());
+        }
+        if (drawing.getChallenge() != null) {
+            this.challenge = new ChallengeInfoDto(drawing.getChallenge());
+        }
+
+    }
+
+    /** 중첩객체를 static으로 설정 */
+    @Getter
+    public static class UserInfoDto {
+        private final Long id;
+        private final String nickname;
+        private final String email;
+
+        public UserInfoDto(User user) {
+            this.id = user.getId();
+            this.nickname = user.getNickname();
+            this.email = user.getEmail();
+        }
+    }
+    @Getter
+    public static class ChallengeInfoDto {
+        private final Long id;
+        private final String title;
+
+        public ChallengeInfoDto(Challenge challenge) {
+            this.id = challenge.getId();
+            this.title = challenge.getTitle();
+        }
     }
 
     /**
@@ -85,8 +116,8 @@ public class DrawingResponseDto {
                 ", imagePath='" + imagePath + '\'' +
                 ", likeCount=" + likeCount +
                 ", medal='" + medal + '\'' +
-                ", challengeId=" + challengeId +
-                ", userId=" + userId +
+                ", user=" + (user != null ? "{id=" + user.getId() + ", nickname='" + user.getNickname() + "'}" : "null") +
+                ", challenge=" + (challenge != null ? "{id=" + challenge.getId() + ", title='" + challenge.getTitle() + "'}" : "null") +
                 '}';
     }
 }

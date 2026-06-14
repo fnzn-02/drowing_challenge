@@ -2,6 +2,9 @@ package com.example.backend.repository;
 
 import com.example.backend.entity.Drawing;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -47,5 +50,19 @@ public interface DrawingRepository extends JpaRepository<Drawing, Long> {
      * @return 조건에 맞는 그림 (없으면 Optional.empty())
      */
     Optional<Drawing> findByIdAndUserId(Long id, Long userId);
+
+    /**
+     * [추가됨] 챌린지 ID로 해당 챌린지에 제출된 그림 목록을 좋아요 수 내림차순으로 조회 (Fetch Join 적용).
+     * DTO 변환 시 발생할 수 있는 N+1 무한 쿼리 문제를 방지하기 위해
+     * 그림 엔티티를 조회할 때 연관된 유저(User)와 챌린지(Challenge) 정보를 한방에 묶어서 긁어온다.
+     * @param challengeId 조회할 챌린지 ID
+     * @return 유저 및 챌린지 정보가 함께 로딩되고, 좋아요 많은 순으로 정렬된 그림 목록
+     */
+    @Query("select d from Drawing d " +
+            "join fetch d.user " +
+            "join fetch d.challenge " +
+            "where d.challenge.id = :challengeId " +
+            "order by d.likeCount desc")
+    List<Drawing> findByChallengeIdWithUserAndChallenge(@Param("challengeId") Long challengeId);
 }
 

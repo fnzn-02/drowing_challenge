@@ -3,56 +3,164 @@ import api from 'axios';
 import "./viewDrowing.css";
 import { useParams, useNavigate } from "react-router-dom";
 
+interface User {
+  id: number;
+  nickname: string;
+  email: string;
+}
+
+interface Challenge {
+  id: number;
+  title: string;
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  user: User;
+}
+
 interface Drowing {
   id: number;
   comment: string;
   imagePath: string;
   likeCount: number;
-  medal: string;
-  challengeId: number;
-  userId: number;
+  medal: string | null;
+  challenge: Challenge;
+  user: User;
+  comments?: Comment[];
+  isLiked?: boolean;
 }
 
 const ViewDrawing = () => {
   const [drawings, setDrawings] = useState<Drowing[]>([]);
-  /* 🚨 어떤 카드의 댓글창이 열려있는지 ID로 관리 (null이면 닫힘 상태) */
   const [activeCommentCardId, setActiveCommentCardId] = useState<number | null>(null);
+  const [commentText, setCommentText] = useState<string>("");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDrowing = async () => {
       try {
-        const response = await api.get('http://localhost:5173/drowings',{
-          params:{challengeId: id}
+        if (!id) {
+          console.error("주소창에 챌린지 ID가 누락되었습니다.");
+          return;
+        }
+
+        const response = await api.get(`http://localhost:8080/challenges/${id}/drawings`);
+        const fetchedDrawings: Drowing[] = response.data;
+
+        const statusPromises = fetchedDrawings.map(async (drawing) => {
+          try {
+            const statusResponse = await api.get(`http://localhost:8080/drawings/${drawing.id}/likes/status`);
+            return { ...drawing, isLiked: statusResponse.data.liked };
+          } catch (error) {
+            console.error(`좋아요 상태 로딩 실패 (ID: ${drawing.id}):`, error);
+            return { ...drawing, isLiked: false };
+          }
         });
 
-        if (id) {
-          const filteredData = response.data.filter(
-            (item: Drowing) => item.challengeId === Number(id)
-          );
-          setDrawings(filteredData);
-        } else {
-          setDrawings(response.data);
-        }
+        const completedDrawings = await Promise.all(statusPromises);
+        setDrawings(completedDrawings);
+
       } catch (error) {
-        console.error("데이터 로딩 실패:", error);
+        console.error("그림 데이터 로딩 실패:", error);
       }
     };
     fetchDrowing();
   }, [id]);
 
-  const toggleComments = (cardId: number) => {
-    setActiveCommentCardId(prev => (prev === cardId ? null : cardId));
+  const toggleComments = async (drawingId: number) => {
+    if (activeCommentCardId === drawingId) {
+      setActiveCommentCardId(null);
+      setCommentText("");
+      return;
+    }
+
+    setActiveCommentCardId(drawingId);
+    setCommentText("");
+
+    try {
+      const response = await api.get(`http://localhost:8080/drawings/${drawingId}/comments`);
+      
+      setDrawings(prevDrawings => 
+        prevDrawings.map(drawing => 
+          drawing.id === drawingId 
+            ? { ...drawing, comments: response.data } 
+            : drawing
+        )
+      );
+    } catch (error) {
+      console.error("실시간 댓글 로딩 실패:", error);
+    }
+  };
+
+  const toggleLike = async (drawingId: number) => {
+    try {
+      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/likes`);
+      const resultMessage = response.data.message;
+      const isCancel = resultMessage.includes("취소");
+
+      setDrawings(prevDrawings =>
+        prevDrawings.map(drawing => {
+          if (drawing.id === drawingId) {
+            return {
+              ...drawing,
+              likeCount: isCancel ? Math.max(0, drawing.likeCount - 1) : drawing.likeCount + 1,
+              isLiked: !isCancel
+            };
+          }
+          return drawing;
+        })
+      );
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        alert("로그인이 필요합니다.");
+      } else {
+        console.error("좋아요 처리 실패:", error);
+      }
+    }
+  };
+
+  const handleCommentSubmit = async (drawingId: number) => {
+    if (!commentText.trim()) return;
+
+    try {
+      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/comments`, {
+        content: commentText
+      });
+
+      const newComment = response.data;
+
+      setDrawings(prevDrawings =>
+        prevDrawings.map(drawing => {
+          if (drawing.id === drawingId) {
+            return {
+              ...drawing,
+              comments: [...(drawing.comments || []), newComment]
+            };
+          }
+          return drawing;
+        })
+      );
+
+      setCommentText("");
+
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        alert("로그인이 필요합니다.");
+      } else {
+        console.error("댓글 등록 실패:", error);
+      }
+    }
   };
 
   return (
     <div className="reels-container">
       <button 
         className="nav-button floating-draw-btn" 
-        onClick={() => navigate("/drawing")}
-      >
-        ✏️ 그림 그리기
+        onClick={() => navigate(`/drawing/${id}`)}
+      > ✏️ 그림 그리기
       </button>
 
       {drawings.map(drawing => {
@@ -60,7 +168,7 @@ const ViewDrawing = () => {
 
         return (
           <div key={drawing.id} id={`card-${drawing.id}`} className="reels-card">
-            {/* 🚨 이미지 영역: 댓글창이 열리면 좌측으로 부드럽게 밀려나도록 클래스 유동적 처리 */}
+            
             <div className={`reels-media-box ${isCommentsOpen ? "shrink" : ""}`}>
               <img src={drawing.imagePath} alt={`drawing-${drawing.id}`} className="reels-image" />
             </div>
@@ -71,48 +179,65 @@ const ViewDrawing = () => {
               </div>
             )}
 
-            {/* 🚨 사이드 액션 버튼 위치 제어 */}
             <div className={`reels-side-actions ${isCommentsOpen ? "shift" : ""}`}>
               <div className="action-button">
-                <span className="icon">❤️</span>
+                <span className="icon" onClick={() => toggleLike(drawing.id)}>
+                  {drawing.isLiked ? '❤️' : '🤍'}
+                </span>
                 <span className="count">{drawing.likeCount}</span>
               </div>
+              
               <div className="action-button" onClick={() => toggleComments(drawing.id)}>
                 <span className="icon">💬</span>
-                <span className="count">댓글</span>
+                <span className="count">{drawing.comments?.length || 0}</span>
               </div>
             </div>
 
             <div className="reels-bottom-info">
-              <div className="challenge-tag">🏆 {drawing.challengeId}</div>
-              <div className="user-nickname">ID: {drawing.userId}</div>
+              <div className="challenge-tag">🏆 {drawing.challenge?.title}</div>
+              <div className="user-nickname">작가: {drawing.user?.nickname}</div>
               <p className="drawing-comment">{drawing.comment}</p>
             </div>
 
-            {/* 🚨 일관성 있는 디자인의 댓글 창 컴포넌트 분리 삽입 */}
             <div className={`reels-comment-section ${isCommentsOpen ? "open" : ""}`}>
               <div className="comment-header">
                 <h3>댓글</h3>
-                <button className="comment-close-btn" onClick={() => setActiveCommentCardId(null)}>✕</button>
+                <button className="comment-close-btn" onClick={() => toggleComments(drawing.id)}>✕</button>
               </div>
               
               <div className="comment-list">
-                {/* 추후 DB 데이터 매핑 공간 (임시 목업 가이드) */}
-                <div className="comment-item">
-                  <span className="comment-user">@user_sample</span>
-                  <span className="comment-text">그림체가 너무 제 취향이에요! 멋집니다 👍</span>
-                </div>
-                <div className="comment-item">
-                  <span className="comment-user">@artist_kim</span>
-                  <span className="comment-text">16:9 비율로 보니까 몰입감이 확 사네요.</span>
-                </div>
+                {drawing.comments && drawing.comments.length > 0 ? (
+                  drawing.comments.map(comm => (
+                    <div key={comm.id} className="comment-item">
+                      <span className="comment-user">@{comm.user?.nickname}</span>
+                      <span className="comment-text">{comm.content}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-comment-text">가장 먼저 댓글을 남겨보세요! 💬</p>
+                )}
               </div>
 
               <div className="comment-input-box">
-                <input type="text" placeholder="댓글을 입력하세요..." className="comment-input" />
-                <button className="comment-submit-btn">게시</button>
+                <input 
+                  type="text" 
+                  placeholder="댓글을 입력하세요..." 
+                  className="comment-input" 
+                  value={activeCommentCardId === drawing.id ? commentText : ""}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCommentSubmit(drawing.id);
+                  }}
+                />
+                <button 
+                  className="comment-submit-btn"
+                  onClick={() => handleCommentSubmit(drawing.id)}
+                >
+                  게시
+                </button>
               </div>
             </div>
+
           </div>
         );
       })}

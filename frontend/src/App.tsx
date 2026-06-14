@@ -13,8 +13,8 @@ function App() {
 
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/view" element={<ViewDrawing />} />
-        <Route path="/drawing" element={<Drawing />} />
+        <Route path="/view/:id" element={<ViewDrawing />} />
+        <Route path="/drawing/:id" element={<Drawing />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
     </BrowserRouter>

@@ -70,13 +70,16 @@ public class DrawingController {
      * GET /challenges/{id}/drawings
      *
      * 특정 챌린지에 제출된 그림 목록을 좋아요 수 내림차순으로 반환한다.
-     * 반환 형식은 프론트엔드의 interface Drowing 규격(DrawingResponseDto)을 따른다.
+     * 반환 형식은 프론트엔드의 interface Drowing 규격(DrawingResponseDto)인 중첩 객체 구조를 따른다.
      *
      * 반환 JSON 예시:
      * [
-     *   { "id": 1, "comment": "멋진 그림!", "imagePath": "/uploads/...", "likeCount": 5,
-     *     "medal": "GOLD", "challengeId": 3, "userId": 12 },
-     *   ...
+     * {
+     * "id": 1, "comment": "멋진 그림!", "imagePath": "/uploads/...", "likeCount": 5, "medal": "GOLD",
+     * "user": { "id": 12, "nickname": "그림천재", "email": "test@test.com" },
+     * "challenge": { "id": 3, "title": "동물 그리기 챌린지" }
+     * },
+     * ...
      * ]
      *
      * @param id URL 경로의 챌린지 ID (challengeId)
@@ -97,23 +100,20 @@ public class DrawingController {
      * GET /drawings/search?drawingId={drawingId}&userId={userId}
      *
      * 프론트엔드가 특정 그림 ID와 유저 ID를 함께 보내면,
-     * 해당 조건에 맞는 그림을 찾아 DrawingResponseDto 객체 배열로 반환한다.
+     * 해당 조건에 맞는 그림을 찾아 계층형 데이터 구조의 DrawingResponseDto 객체 배열로 반환한다.
      *
      * 처리 흐름:
      * 1. 프론트에서 drawingId + userId를 쿼리 파라미터로 전송
      * 2. 컨트롤러가 파라미터를 받아 서비스로 전달
-     * 3. 서비스가 drawing_id + user_id 조건으로 DB 조회 후 DTO 객체 배열 생성
+     * 3. 서비스가 drawing_id + user_id 조건으로 DB 조회 후 중첩 구조의 DTO 객체 배열 생성
      * 4. 컨트롤러가 결과를 로그로 출력하고 프론트로 JSON 응답
      *
      * 반환 JSON 예시 (찾은 경우):
-     * [{ "id": 1, "comment": "...", "imagePath": "/uploads/...",
-     *    "likeCount": 3, "medal": null, "challengeId": 2, "userId": 5 }]
+     * [{ "id": 1, "comment": "...", "imagePath": "/uploads/...", "likeCount": 3, "medal": null,
+     * "user": { "id": 5, "nickname": "홍길동", "email": "hong@test.com" },
+     * "challenge": { "id": 2, "title": "풍경화 챌린지" } }]
      *
      * 반환 JSON 예시 (못 찾은 경우): []
-     *
-     * @param drawingId 프론트에서 보낸 그림 ID
-     * @param userId    프론트에서 보낸 유저 ID
-     * @return DrawingResponseDto 객체 배열 (0개 또는 1개)
      */
     @GetMapping("/drawings/search")
     public ResponseEntity<List<DrawingResponseDto>> getDrawingByDrawingIdAndUserId(

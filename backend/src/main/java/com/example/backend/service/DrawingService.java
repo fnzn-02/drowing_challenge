@@ -108,22 +108,21 @@ public class DrawingService {
     }
 
     /**
-     * [추가됨] 챌린지별 그림 목록 조회 후 프론트 규격 DTO로 변환해서 반환.
+     * [수정됨] drawing_id + user_id 복합 조건으로 그림 조회 후 DTO 객체 배열 반환.
      *
-     * Drawing 엔티티를 직접 반환하면 challenge/user 객체 전체가 JSON에 포함되어
-     * 프론트의 interface Drowing 규격과 맞지 않는다.
-     * DrawingResponseDto로 변환하면 challengeId(숫자), userId(숫자) 형태로
-     * 프론트 규격에 딱 맞게 내려간다.
+     * 프론트엔드가 특정 그림 ID와 유저 ID를 함께 보내왔을 때, 해당 조건에 맞는 그림을 찾아
+     * 내부 static class(user, challenge)가 바인딩된 DrawingResponseDto 리스트로 반환한다.
      *
-     * @param challengeId 조회할 챌린지의 ID
-     * @return 프론트 규격(DrawingResponseDto) 객체 배열
+     * @param drawingId 조회할 그림 ID (프론트에서 보낸 drawing_id)
+     * @param userId    조회할 유저 ID (프론트에서 보낸 user_id)
+     * @return 조건에 맞는 DrawingResponseDto 객체 배열 (0개 또는 1개)
      */
     public List<DrawingResponseDto> getDrawingsByChallenge(Long challengeId) {
         log.info("[DrawingService] 챌린지별 그림 목록 조회 요청 - challengeId: {}", challengeId);
 
-        List<DrawingResponseDto> result = drawingRepository.findByChallengeIdOrderByLikeCountDesc(challengeId)
+        List<DrawingResponseDto> result = drawingRepository.findByChallengeIdWithUserAndChallenge(challengeId)
                 .stream()
-                .map(DrawingResponseDto::new)   // Drawing 엔티티 → DrawingResponseDto 변환
+                .map(DrawingResponseDto::new)   // Drawing 엔티티 → 중첩 구조 DTO 자동 조립
                 .collect(Collectors.toList());
 
         log.info("[DrawingService] 챌린지별 그림 목록 조회 완료 - challengeId: {}, 조회된 개수: {}", challengeId, result.size());

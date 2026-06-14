@@ -1,42 +1,80 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useParams, useSearchParams } from "react-router-dom";
 import "./Drawing.css";
 
-const Drawing: React.FC = () => {
+const API = "http://localhost:8080";
+
+type Tool = 'pen' | 'eraser' | 'fill' | 'picker';
+
+const Drawing = () => {
+  const { id: routeId } = useParams();
+  const [searchParams] = useSearchParams();
+  const challengeId = routeId || searchParams.get("challengeId") || searchParams.get("id") || "1";
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("#000000");
   const [lineWidth, setLineWidth] = useState(5);
-const [title, setTitle] = useState(() => {
-  return sessionStorage.getItem("savedTitle") || "";
-});
-      const SubmitDrawing = async () => {
-        try {
-            const response = await axios.post('/api/Drawings', {
-                title: title,
-                json: canvasRef.current?.toDataURL()
-                
-            });
-            alert("등록 성공!");
-            sessionStorage.removeItem("savedTitle");
-        }catch (error) {
-            console.error('등록 중 오류 발생 : ', error);
-            alert("등록 실패!");
-        }};
+  const [tool, setTool] = useState<Tool>('pen');
+  const [historyState, setHistoryState] = useState<{ list: string[]; index: number }>({
+    list: [],
+    index: -1,
+  });
+  
+  const [title, setTitle] = useState(() => {
+    return sessionStorage.getItem("savedTitle") || "";
+  });
+
+  const SubmitDrawing = async () => {
+    if (!canvasRef.current) return;
+    try {
+      const dataUrl = canvasRef.current.toDataURL("image/png");
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "drawing.png", { type: "image/png" });
+
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("comment", title);
+
+      await axios.post(`${API}/challenges/${challengeId}/draw`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      });
+
+      alert("등록 성공!");
+      sessionStorage.removeItem("savedTitle");
+    } catch (error) {
+      console.error("등록 중 오류 발생 : ", error);
+      alert("등록 실패!");
+    }
+  };
         
-    useEffect(() => {
-        sessionStorage.setItem('savedTitle', title);
-    }, [title]);
+  useEffect(() => {
+      sessionStorage.setItem('savedTitle', title);
+  }, [title]);
 
+  const saveToHistory = (dataUrl: string) => {
+    setHistoryState((prev) => {
+      const newList = prev.list.slice(0, prev.index + 1);
+      newList.push(dataUrl);
+      return {
+        list: newList,
+        index: newList.length - 1,
+      };
+    });
+  };
 
-useEffect(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
       canvas.width = 800;
       canvas.height = 600;
       
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
       if (context) {
         context.lineCap = "round";
         context.lineJoin = "round";
@@ -44,15 +82,25 @@ useEffect(() => {
         context.lineWidth = lineWidth;
         setCtx(context);
 
-        // [추가] 새로고침 시 세션스토리지에서 기존 그림 데이터 읽어오기
         const savedDrawing = sessionStorage.getItem("savedDrawing");
         if (savedDrawing) {
           const img = new Image();
           img.src = savedDrawing;
-          // 이미지가 로드된 후 캔버스에 다시 그려줌
           img.onload = () => {
             context.drawImage(img, 0, 0);
+            setHistoryState({
+              list: [savedDrawing],
+              index: 0,
+            });
           };
+        } else {
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          const initialData = canvas.toDataURL();
+          setHistoryState({
+            list: [initialData],
+            index: 0,
+          });
         }
       }
     }
@@ -60,17 +108,27 @@ useEffect(() => {
 
   useEffect(() => {
     if (ctx) {
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
       ctx.lineWidth = lineWidth;
     }
-  }, [color, lineWidth, ctx]);
+  }, [color, lineWidth, ctx, tool]);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!ctx) return;
+    if (!ctx || !canvasRef.current) return;
     const { offsetX, offsetY } = e.nativeEvent;
-    ctx.beginPath();
-    ctx.moveTo(offsetX, offsetY);
-    setIsDrawing(true);
+    
+    const x = Math.floor(offsetX);
+    const y = Math.floor(offsetY);
+
+    if (tool === 'fill') {
+      floodFill(x, y);
+    } else if (tool === 'picker') {
+      pickColor(x, y);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(offsetX, offsetY);
+      setIsDrawing(true);
+    }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -79,42 +137,202 @@ useEffect(() => {
     ctx.lineTo(offsetX, offsetY);
     ctx.stroke();
   };
-const stopDrawing = () => {
-    if (!ctx || !canvasRef.current) return;
-    ctx.closePath();
-    setIsDrawing(false);
 
+  const stopDrawing = () => {
+    if (!ctx || !canvasRef.current) return;
+    if (isDrawing) {
+      ctx.closePath();
+      setIsDrawing(false);
+
+      const currentDrawing = canvasRef.current.toDataURL();
+      sessionStorage.setItem("savedDrawing", currentDrawing);
+      saveToHistory(currentDrawing);
+    }
+  };
+
+  const clearCanvas = () => {
+    if (!canvasRef.current || !ctx) return;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    
     const currentDrawing = canvasRef.current.toDataURL();
     sessionStorage.setItem("savedDrawing", currentDrawing);
+    saveToHistory(currentDrawing);
   };
 
-const clearCanvas = () => {
+  const handleColorChange = (newColor: string) => {
+    setColor(newColor);
+    if (tool === 'eraser' || tool === 'picker') {
+      setTool('pen');
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyState.index > 0 && canvasRef.current && ctx) {
+      const prevIndex = historyState.index - 1;
+      const prevData = historyState.list[prevIndex];
+      const img = new Image();
+      img.src = prevData;
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+        ctx.drawImage(img, 0, 0);
+        setHistoryState((prev) => ({ ...prev, index: prevIndex }));
+        sessionStorage.setItem("savedDrawing", prevData);
+      };
+    }
+  };
+
+  const hexToRgba = (hex: string): [number, number, number, number] => {
+    let c = hex.substring(1);
+    if (c.length === 3) {
+      c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+    }
+    const num = parseInt(c, 16);
+    return [
+      (num >> 16) & 255,
+      (num >> 8) & 255,
+      num & 255,
+      255
+    ];
+  };
+
+  const floodFill = (startX: number, startY: number) => {
     if (!canvasRef.current || !ctx) return;
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    const width = canvasRef.current.width;
+    const height = canvasRef.current.height;
     
-    sessionStorage.removeItem("savedDrawing");
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    
+    const targetColor = hexToRgba(color);
+    const startIdx = (startY * width + startX) * 4;
+    const startR = data[startIdx];
+    const startG = data[startIdx + 1];
+    const startB = data[startIdx + 2];
+    const startA = data[startIdx + 3];
+
+    if (
+      startR === targetColor[0] &&
+      startG === targetColor[1] &&
+      startB === targetColor[2] &&
+      startA === targetColor[3]
+    ) {
+      return;
+    }
+
+    const stack: [number, number][] = [[startX, startY]];
+    
+    data[startIdx] = targetColor[0];
+    data[startIdx + 1] = targetColor[1];
+    data[startIdx + 2] = targetColor[2];
+    data[startIdx + 3] = targetColor[3];
+
+    while (stack.length > 0) {
+      const [cx, cy] = stack.pop()!;
+      
+      const directions = [
+        [cx - 1, cy],
+        [cx + 1, cy],
+        [cx, cy - 1],
+        [cx, cy + 1]
+      ];
+      
+      for (const [nx, ny] of directions) {
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+          const idx = (ny * width + nx) * 4;
+          if (
+            data[idx] === startR &&
+            data[idx + 1] === startG &&
+            data[idx + 2] === startB &&
+            data[idx + 3] === startA
+          ) {
+            data[idx] = targetColor[0];
+            data[idx + 1] = targetColor[1];
+            data[idx + 2] = targetColor[2];
+            data[idx + 3] = targetColor[3];
+            stack.push([nx, ny]);
+          }
+        }
+      }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+    
+    const currentDrawing = canvasRef.current.toDataURL();
+    sessionStorage.setItem("savedDrawing", currentDrawing);
+    saveToHistory(currentDrawing);
   };
 
-
+  const pickColor = (x: number, y: number) => {
+    if (!ctx || !canvasRef.current) return;
+    const imgData = ctx.getImageData(x, y, 1, 1).data;
+    const r = imgData[0];
+    const g = imgData[1];
+    const b = imgData[2];
+    const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    setColor(hex);
+    setTool('pen');
+  };
 
   return (
-<div className="drawing-container">
-    <input 
-    className="title-input" 
-    onChange={(e) => setTitle(e.target.value)} 
-    placeholder="제목을 입력하세요" 
-    value={title}/>
-        <div className="controls">
+    <div className="drawing-container">
+      <input 
+        className="title-input" 
+        onChange={(e) => setTitle(e.target.value)} 
+        placeholder="제목을 입력하세요" 
+        value={title}
+      />
+      <div className="controls">
         <div className="control-group">
           <label>Color:</label>
           <input
             type="color"
             value={color}
-            onChange={(e) => setColor(e.target.value)}
+            onChange={(e) => handleColorChange(e.target.value)}
             title="Change Color"
           />
         </div>
-         <button className="eraser-btn" onClick={()=>setColor("#ffffff")}>지우개</button>
+        
+        <div className="tool-group">
+          <button 
+            className={`tool-btn ${tool === 'pen' ? 'active' : ''}`} 
+            onClick={() => setTool('pen')}
+            title="펜"
+          >
+            펜
+          </button>
+          <button 
+            className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`} 
+            onClick={() => setTool('eraser')}
+            title="지우개"
+          >
+            지우개
+          </button>
+          <button 
+            className={`tool-btn ${tool === 'fill' ? 'active' : ''}`} 
+            onClick={() => setTool('fill')}
+            title="채우기"
+          >
+            채우기
+          </button>
+          <button 
+            className={`tool-btn ${tool === 'picker' ? 'active' : ''}`} 
+            onClick={() => setTool('picker')}
+            title="스포이드"
+          >
+            스포이드
+          </button>
+        </div>
+
+        <button 
+          className="undo-btn" 
+          onClick={handleUndo} 
+          disabled={historyState.index <= 0}
+          title="뒤로가기"
+        >
+          뒤로가기
+        </button>
+
         <div className="control-group">
           <label>Brush Size: {lineWidth}</label>
           <input

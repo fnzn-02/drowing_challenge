@@ -66,21 +66,61 @@
   accent-color: #4a90e2;
 }
 
-.eraser-btn {
-  padding: 10px 20px;
+.tool-group {
+  display: flex;
+  gap: 8px;
+  border-right: 1px solid #eee;
+  padding-right: 15px;
+}
+
+.tool-btn {
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: #ffffff;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.tool-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+}
+
+.tool-btn.active {
+  background-color: #4a90e2;
+  color: white;
+  border-color: #4a90e2;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+}
+
+.undo-btn {
+  padding: 8px 16px;
   cursor: pointer;
   background-color: #ffffff;
   color: #333;
-  border: 2px solid #ccc;
-  border-radius: 25px;
-  font-weight: 700;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(193, 193, 193, 0.3);
+  font-size: 13px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
-.eraser-btn:hover {
-  background-color: #ccc;
+
+.undo-btn:hover:not(:disabled) {
+  background-color: #f5f5f5;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(202, 202, 202, 0.4);
+}
+
+.undo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #eaeaea;
+  border-color: #ddd;
+  color: #999;
 }
 .clear-btn {
   padding: 10px 20px;

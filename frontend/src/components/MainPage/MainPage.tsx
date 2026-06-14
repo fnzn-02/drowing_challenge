@@ -45,7 +45,7 @@ const MainPage = () => {
                         <div className="challenge-date-section">
                             <span className="date-label">기간:</span>
                             <span className="challenge-date">
-                                {challenge.startDate} ~ {challenge.endDate}
+                                {challenge.startDate?.replace("T", " ").substring(0, 10)} ~ {challenge.endDate?.replace("T", " ").substring(0, 10)}
                             </span>
                         </div>
                     </div>

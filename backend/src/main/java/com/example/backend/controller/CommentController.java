@@ -1,5 +1,6 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CommentResponseDto;
 import com.example.backend.entity.Comment;
 import com.example.backend.entity.User;
 import com.example.backend.service.CommentService;
@@ -27,13 +28,13 @@ public class CommentController {
         User loginUser = (User) session.getAttribute("loginUser");
         if (loginUser == null) return ResponseEntity.status(401).body("로그인이 필요합니다.");
 
-        Comment comment = commentService.addComment(id, loginUser, body.get("content"));
-        return ResponseEntity.ok(comment);
+        CommentResponseDto response = commentService.addComment(id, loginUser, body.get("content"));
+        return ResponseEntity.ok(response);
     }
 
     // GET /drawings/{id}/comments — 댓글 목록 조회
     @GetMapping("/drawings/{id}/comments")
-    public ResponseEntity<List<Comment>> getComments(@PathVariable Long id) {
+    public ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long id) {
         return ResponseEntity.ok(commentService.getComments(id));
     }
 

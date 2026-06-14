@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.CommentResponseDto;
 import com.example.backend.entity.Comment;
 import com.example.backend.entity.Drawing;
 import com.example.backend.entity.User;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +20,7 @@ public class CommentService {
     private final DrawingRepository drawingRepository;
 
     // 댓글 작성
-    public Comment addComment(Long drawingId, User user, String content) {
+    public CommentResponseDto addComment(Long drawingId, User user, String content) {
         Drawing drawing = drawingRepository.findById(drawingId)
                 .orElseThrow(() -> new IllegalArgumentException("그림을 찾을 수 없습니다."));
 
@@ -27,12 +29,16 @@ public class CommentService {
         }
 
         Comment comment = new Comment(null, drawing, user, content.trim(), null);
-        return commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
+        return new CommentResponseDto(saved);
     }
 
     // 댓글 목록 조회
-    public List<Comment> getComments(Long drawingId) {
-        return commentRepository.findByDrawingIdOrderByCreatedAtAsc(drawingId);
+    public List<CommentResponseDto> getComments(Long drawingId) {
+        return commentRepository.findByDrawingIdOrderByCreatedAtAsc(drawingId)
+                .stream()
+                .map(CommentResponseDto::new)
+                .collect(Collectors.toList());
     }
 
     // 댓글 삭제 (본인만 가능)

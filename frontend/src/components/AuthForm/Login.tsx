@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import './Login.css'
 
@@ -11,13 +11,15 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const message = location.state?.message
 
   const login = async () => {
     setError('')
     setLoading(true)
     try {
       await axios.post(`${API}/auth/login`, { email, password }, { withCredentials: true })
-      navigate('/view')
+      navigate('/')
     } catch (e: unknown) {
       setError(axios.isAxiosError(e) ? e.response?.data : '로그인에 실패했습니다.')
     } finally {
@@ -55,6 +57,7 @@ function Login() {
           </button>
         </div>
 
+        {message && <p className="login-error">{message}</p>}
         {error && <p className="login-error">{error}</p>}
       </div>
     </div>

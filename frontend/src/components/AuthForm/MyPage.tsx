@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import './MyPage.css'
 
@@ -16,6 +17,7 @@ interface MyPageProps {
 }
 
 function MyPage({ onClose }: MyPageProps) {
+  const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
   const [tab, setTab] = useState<'info' | 'nickname' | 'password' | 'withdraw'>('info')
 
@@ -34,15 +36,16 @@ function MyPage({ onClose }: MyPageProps) {
       const res = await axios.get(`${API}/mypage`, { withCredentials: true })
       setUser(res.data)
     } catch {
-      setError('로그인이 필요합니다.')
+      onClose()
+      navigate('/login')
     }
   }
 
   useEffect(() => {
     axios.get(`${API}/mypage`, { withCredentials: true })
       .then(res => setUser(res.data))
-      .catch(() => setError('로그인이 필요합니다.'))
-  }, [])
+      .catch(() => { onClose(); navigate('/login', { state: { message: '로그인이 필요합니다.' } }) })
+  }, [navigate, onClose])
 
   const handleNickname = async () => {
     setError('')

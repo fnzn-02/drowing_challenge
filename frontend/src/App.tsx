@@ -4,6 +4,7 @@ import Drawing from './components/Drawing/Drawing'
 import Signup from './components/AuthForm/Signup'
 import MainPage from './components/MainPage/MainPage';
 import TopBar from './components/TopBar/TopBar';
+import Login from './components/AuthForm/Login';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/view/:id" element={<ViewDrawing />} />
         <Route path="/drawing/:id" element={<Drawing />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
   )

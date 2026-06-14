@@ -1,14 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import './Signup.css'
 
 const API = 'http://localhost:8080'
 
-interface SignupProps {
-  onSuccess?: () => void
-}
-
-function Signup({ onSuccess }: SignupProps) {
+function Signup() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -50,7 +48,8 @@ function Signup({ onSuccess }: SignupProps) {
     try {
       await axios.post(`${API}/auth/signup`, { email, password, passwordConfirm, nickname })
       await axios.post(`${API}/auth/login`, { email, password }, { withCredentials: true })
-      if (onSuccess) onSuccess()
+      alert('회원가입이 완료됐습니다!')
+      navigate('/')
     } catch (e: unknown) {
       setError(axios.isAxiosError(e) ? e.response?.data : '회원가입에 실패했습니다.')
     } finally {

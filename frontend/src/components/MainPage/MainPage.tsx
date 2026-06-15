@@ -15,7 +15,13 @@ interface Challenges {
 
 const MainPage = () => {
     const [challenges, setChallenges] = useState<Challenges[]>([]);
+    const [search, setSearch] = useState("");
     const navigate = useNavigate();
+
+    const filtered = challenges.filter(c =>
+        c.title.toLowerCase().includes(search.toLowerCase()) ||
+        c.description?.toLowerCase().includes(search.toLowerCase())
+    );
 
     useEffect(() => {
         const fetchChallenge = async () => {
@@ -31,9 +37,19 @@ const MainPage = () => {
 
     return (
         <div className="main-page-container">
-            <h1 className="page-title">🏆 진행 중인 챌린지</h1>
+            <div className="page-header">
+                <h1 className="page-title">🏆 진행 중인 챌린지</h1>
+                <input
+                    className="challenge-search"
+                    type="text"
+                    placeholder="챌린지 검색..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                />
+            </div>
             <div className="challenge-list">
-                {challenges.map(challenge => (
+                {filtered.length === 0 && <p className="no-result">검색 결과가 없습니다.</p>}
+                {filtered.map(challenge => (
                     <div key={challenge.id} className="challenge-bar-card" onClick={() => navigate(`/view/${challenge.id}`)}>
                         <div className="challenge-title-section">
                             <span className="challenge-badge">{challenge.status}</span>

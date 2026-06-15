@@ -11,12 +11,44 @@
     padding-right: 20px;
 }
 
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    gap: 16px;
+}
+
 .page-title {
     font-size: 24px;
     font-weight: bold;
-    margin-top: 30px;
-    margin-bottom: 30px;
     color: var(--text-h, #333);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.challenge-search {
+    width: 220px;
+    padding: 9px 14px;
+    border: 1px solid var(--border, #e1e1e1);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-h);
+    background: var(--bg);
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.challenge-search:focus {
+    border-color: var(--accent);
+}
+
+.no-result {
+    text-align: center;
+    color: var(--text);
+    padding: 40px 0;
 }
 
 .challenge-list {

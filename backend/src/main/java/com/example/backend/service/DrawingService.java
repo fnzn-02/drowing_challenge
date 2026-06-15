@@ -7,15 +7,16 @@ import com.example.backend.entity.User;
 import com.example.backend.repository.ChallengeRepository;
 import com.example.backend.repository.DrawingRepository;
 
-import io.awspring.cloud.s3.S3Template;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors; // [추가됨] DTO 리스트 매핑을 위해 import
@@ -37,10 +38,9 @@ public class DrawingService {
 
     private final DrawingRepository drawingRepository;
     private final ChallengeRepository challengeRepository;
-    private final S3Template s3Template;
 
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private static final String UPLOAD_DIR = "/home/ubuntu/uploads/";
+    private static final String BASE_URL = "http://13.125.216.43/uploads/";
 
     /**
      * 그림 제출 처리.
@@ -79,10 +79,12 @@ public class DrawingService {
             throw new IllegalArgumentException("이미 그림을 제출했습니다.");
         }
 
-        // 4. S3에 이미지 업로드
+        // 4. EC2 로컬에 이미지 저장
         String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-        s3Template.upload(bucket, fileName, imageFile.getInputStream());
-        String imageUrl = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + fileName;
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+        Files.copy(imageFile.getInputStream(), uploadPath.resolve(fileName));
+        String imageUrl = BASE_URL + fileName;
 
         // 5. DB 저장
         Drawing drawing = new Drawing(null, challenge, user,
@@ -163,7 +165,7 @@ public class DrawingService {
      * @param drawingId  삭제할 그림의 ID
      * @param loginUser  현재 로그인된 유저 (세션에서 가져옴)
      */
-    public void deleteDrawing(Long drawingId, User loginUser) {
+    public void deleteDrawing(Long drawingId, User loginUser) throws IOException {
         log.info("[DrawingService] 그림 삭제 요청 - drawingId: {}, requestUserId: {}", drawingId, loginUser.getId());
 
         Drawing drawing = drawingRepository.findById(drawingId)
@@ -175,8 +177,8 @@ public class DrawingService {
             throw new IllegalArgumentException("본인 그림만 삭제할 수 있습니다.");
         }
 
-        String key = drawing.getImagePath().substring(drawing.getImagePath().lastIndexOf("/") + 1);
-        s3Template.deleteObject(bucket, key);
+        String fileName = drawing.getImagePath().substring(drawing.getImagePath().lastIndexOf("/") + 1);
+        Files.deleteIfExists(Paths.get(UPLOAD_DIR + fileName));
         drawingRepository.delete(drawing);
         log.info("[DrawingService] 그림 삭제 완료 - drawingId: {}", drawingId);
     }

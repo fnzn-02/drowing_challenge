@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import "./Drawing.css";
 
-const API = "http://localhost:8080";
+const API = "http://13.125.216.43:8080";
 
 type Tool = 'pen' | 'eraser' | 'fill' | 'picker';
 

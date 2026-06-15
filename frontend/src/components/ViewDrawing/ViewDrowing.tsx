@@ -44,14 +44,14 @@ const ViewDrawing = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get('http://localhost:8080/mypage', { withCredentials: true })
+    api.get('http://13.125.216.43:8080/mypage', { withCredentials: true })
       .then(res => setCurrentUserId(res.data.id))
       .catch(() => setCurrentUserId(null));
   }, []);
 
   useEffect(() => {
     if (!id) return;
-    api.get(`http://localhost:8080/challenges/${id}/draw/check`, { withCredentials: true })
+    api.get(`http://13.125.216.43:8080/challenges/${id}/draw/check`, { withCredentials: true })
       .then(res => setHasSubmitted(res.data === true))
       .catch(() => setHasSubmitted(false));
   }, [id]);
@@ -64,12 +64,12 @@ const ViewDrawing = () => {
           return;
         }
 
-        const response = await api.get(`http://localhost:8080/challenges/${id}/drawings`, { withCredentials: true });
+        const response = await api.get(`http://13.125.216.43:8080/challenges/${id}/drawings`, { withCredentials: true });
         const fetchedDrawings: Drowing[] = response.data;
 
         const statusPromises = fetchedDrawings.map(async (drawing) => {
           try {
-            const statusResponse = await api.get(`http://localhost:8080/drawings/${drawing.id}/likes/status`, { withCredentials: true });
+            const statusResponse = await api.get(`http://13.125.216.43:8080/drawings/${drawing.id}/likes/status`, { withCredentials: true });
             return { ...drawing, isLiked: statusResponse.data.liked };
           } catch (error) {
             console.error(`좋아요 상태 로딩 실패 (ID: ${drawing.id}):`, error);
@@ -98,7 +98,7 @@ const ViewDrawing = () => {
     setCommentText("");
 
     try {
-      const response = await api.get(`http://localhost:8080/drawings/${drawingId}/comments`, { withCredentials: true });
+      const response = await api.get(`http://13.125.216.43:8080/drawings/${drawingId}/comments`, { withCredentials: true });
       
       setDrawings(prevDrawings => 
         prevDrawings.map(drawing => 
@@ -114,7 +114,7 @@ const ViewDrawing = () => {
 
   const toggleLike = async (drawingId: number) => {
     try {
-      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/likes`, {}, { withCredentials: true });
+      const response = await api.post(`http://13.125.216.43:8080/drawings/${drawingId}/likes`, {}, { withCredentials: true });
       const resultMessage = response.data.message;
       const isCancel = resultMessage.includes("취소");
 
@@ -143,7 +143,7 @@ const ViewDrawing = () => {
   const handleDrawingDelete = async () => {
     if (deleteTargetId === null) return;
     try {
-      await api.delete(`http://localhost:8080/drawings/${deleteTargetId}`, { withCredentials: true });
+      await api.delete(`http://13.125.216.43:8080/drawings/${deleteTargetId}`, { withCredentials: true });
       setDrawings(prev => prev.filter(d => d.id !== deleteTargetId));
       setHasSubmitted(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,7 +156,7 @@ const ViewDrawing = () => {
 
   const handleCommentDelete = async (drawingId: number, commentId: number) => {
     try {
-      await api.delete(`http://localhost:8080/comments/${commentId}`, { withCredentials: true });
+      await api.delete(`http://13.125.216.43:8080/comments/${commentId}`, { withCredentials: true });
       setDrawings(prevDrawings =>
         prevDrawings.map(drawing => {
           if (drawing.id === drawingId) {
@@ -179,7 +179,7 @@ const ViewDrawing = () => {
     if (!commentText.trim()) return;
 
     try {
-      const response = await api.post(`http://localhost:8080/drawings/${drawingId}/comments`, {
+      const response = await api.post(`http://13.125.216.43:8080/drawings/${drawingId}/comments`, {
         content: commentText
       }, { withCredentials: true });
 
@@ -244,7 +244,7 @@ const ViewDrawing = () => {
           <div key={drawing.id} id={`card-${drawing.id}`} className="reels-card">
             
             <div className={`reels-media-box ${isCommentsOpen ? "shrink" : ""}`}>
-              <img src={`http://localhost:8080${drawing.imagePath}`} alt={`drawing-${drawing.id}`} className="reels-image" />
+              <img src={drawing.imagePath} alt={`drawing-${drawing.id}`} className="reels-image" />
             </div>
 
             {drawing.medal && (

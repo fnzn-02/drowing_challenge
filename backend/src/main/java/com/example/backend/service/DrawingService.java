@@ -7,16 +7,15 @@ import com.example.backend.entity.User;
 import com.example.backend.repository.ChallengeRepository;
 import com.example.backend.repository.DrawingRepository;
 
+import io.awspring.cloud.s3.S3Template;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors; // [추가됨] DTO 리스트 매핑을 위해 import
@@ -38,6 +37,10 @@ public class DrawingService {
 
     private final DrawingRepository drawingRepository;
     private final ChallengeRepository challengeRepository;
+    private final S3Template s3Template;
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     /**
      * 그림 제출 처리.
@@ -76,18 +79,14 @@ public class DrawingService {
             throw new IllegalArgumentException("이미 그림을 제출했습니다.");
         }
 
-        // 4. 이미지 파일 저장 (/uploads 폴더)
-        // UUID로 파일명을 무작위화하여 동일한 파일명 충돌 방지
-        String uploadDir = System.getProperty("user.dir") + "/uploads/";
+        // 4. S3에 이미지 업로드
         String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-        Files.createDirectories(filePath.getParent()); // 폴더가 없으면 생성
-        Files.write(filePath, imageFile.getBytes());   // 파일 바이트 기록
+        s3Template.upload(bucket, fileName, imageFile.getInputStream());
+        String imageUrl = "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + fileName;
 
         // 5. DB 저장
-        // medal은 챌린지 종료 시 스케줄러가 자동으로 부여하므로 초기값은 null
         Drawing drawing = new Drawing(null, challenge, user,
-                "/uploads/" + fileName, comment, 0, null, null, null, null);
+                imageUrl, comment, 0, null, null, null, null);
         Drawing saved = drawingRepository.save(drawing);
 
         log.info("[DrawingService] 그림 제출 완료 - drawingId: {}, imagePath: {}", saved.getId(), saved.getImagePath());
@@ -176,6 +175,8 @@ public class DrawingService {
             throw new IllegalArgumentException("본인 그림만 삭제할 수 있습니다.");
         }
 
+        String key = drawing.getImagePath().substring(drawing.getImagePath().lastIndexOf("/") + 1);
+        s3Template.deleteObject(bucket, key);
         drawingRepository.delete(drawing);
         log.info("[DrawingService] 그림 삭제 완료 - drawingId: {}", drawingId);
     }

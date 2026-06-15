@@ -28,8 +28,8 @@ const MainPage = () => {
         const fetchChallenge = async () => {
             try {
                 const url = tab === "ongoing"
-                    ? 'http://localhost:8080/challenges'
-                    : 'http://localhost:8080/challenges/ended';
+                    ? 'http://13.125.216.43:8080/challenges'
+                    : 'http://13.125.216.43:8080/challenges/ended';
                 const response = await api.get(url);
                 setChallenges(response.data);
             } catch (error) {

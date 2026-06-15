@@ -38,6 +38,8 @@ const ViewDrawing = () => {
   const [activeCommentCardId, setActiveCommentCardId] = useState<number | null>(null);
   const [commentText, setCommentText] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -46,6 +48,13 @@ const ViewDrawing = () => {
       .then(res => setCurrentUserId(res.data.id))
       .catch(() => setCurrentUserId(null));
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    api.get(`http://localhost:8080/challenges/${id}/draw/check`, { withCredentials: true })
+      .then(res => setHasSubmitted(res.data === true))
+      .catch(() => setHasSubmitted(false));
+  }, [id]);
 
   useEffect(() => {
     const fetchDrowing = async () => {
@@ -131,6 +140,20 @@ const ViewDrawing = () => {
     }
   };
 
+  const handleDrawingDelete = async () => {
+    if (deleteTargetId === null) return;
+    try {
+      await api.delete(`http://localhost:8080/drawings/${deleteTargetId}`, { withCredentials: true });
+      setDrawings(prev => prev.filter(d => d.id !== deleteTargetId));
+      setHasSubmitted(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error("그림 삭제 실패:", error);
+    } finally {
+      setDeleteTargetId(null);
+    }
+  };
+
   const handleCommentDelete = async (drawingId: number, commentId: number) => {
     try {
       await api.delete(`http://localhost:8080/comments/${commentId}`, { withCredentials: true });
@@ -188,10 +211,30 @@ const ViewDrawing = () => {
 
   return (
     <div className="reels-container">
-      <button 
-        className="nav-button floating-draw-btn" 
-        onClick={() => navigate(`/drawing/${id}`)}
-      > ✏️ 그림 그리기
+      {deleteTargetId !== null && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '260px' }}>
+            <p style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>내 그림을 삭제할까요?</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>삭제하면 되돌릴 수 없어요.</p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <button onClick={() => setDeleteTargetId(null)} style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}>취소</button>
+              <button onClick={handleDrawingDelete} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <button
+        className="nav-button floating-draw-btn"
+        onClick={() => {
+          if (hasSubmitted) {
+            const myDrawing = drawings.find(d => d.user?.id === currentUserId);
+            if (myDrawing) document.getElementById(`card-${myDrawing.id}`)?.scrollIntoView({ behavior: 'smooth' });
+            return;
+          }
+          if (!currentUserId) { alert("로그인이 필요합니다."); return; }
+          navigate(`/drawing/${id}`);
+        }}
+      >{hasSubmitted ? '🖼️ 내 그림 보러가기' : '✏️ 그림 그리기'}
       </button>
 
       {drawings.map(drawing => {
@@ -222,6 +265,11 @@ const ViewDrawing = () => {
                 <span className="icon">💬</span>
                 <span className="count">{drawing.comments?.length ?? drawing.commentCount ?? 0}</span>
               </div>
+              {currentUserId === drawing.user?.id && (
+                <div className="action-button" onClick={() => setDeleteTargetId(drawing.id)}>
+                  <span className="icon">🗑️</span>
+                </div>
+              )}
             </div>
 
             <div className="reels-bottom-info">

@@ -87,7 +87,7 @@ public class DrawingService {
         // 5. DB 저장
         // medal은 챌린지 종료 시 스케줄러가 자동으로 부여하므로 초기값은 null
         Drawing drawing = new Drawing(null, challenge, user,
-                "/uploads/" + fileName, comment, 0, null, null, null);
+                "/uploads/" + fileName, comment, 0, null, null, null, null);
         Drawing saved = drawingRepository.save(drawing);
 
         log.info("[DrawingService] 그림 제출 완료 - drawingId: {}, imagePath: {}", saved.getId(), saved.getImagePath());

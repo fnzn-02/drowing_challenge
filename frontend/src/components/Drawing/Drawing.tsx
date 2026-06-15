@@ -28,6 +28,44 @@ const Drawing = () => {
     return sessionStorage.getItem("savedTitle") || "";
   });
 
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeExpired, setTimeExpired] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const formatTime = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          setTimeExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
+  const handleRestart = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    clearCanvas();
+    setTimeLeft(300);
+    setTimeExpired(false);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          setTimeExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const SubmitDrawing = async () => {
     if (!canvasRef.current) return;
     try {
@@ -124,7 +162,7 @@ const Drawing = () => {
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const ctx = ctxRef.current;
-    if (!ctx || !canvasRef.current) return;
+    if (!ctx || !canvasRef.current || timeExpired) return;
     const { offsetX, offsetY } = e.nativeEvent;
 
     const x = Math.floor(offsetX);
@@ -292,12 +330,6 @@ const Drawing = () => {
 
   return (
     <div className="drawing-container">
-      <input
-        className="title-input"
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="제목을 입력하세요"
-        value={title}
-      />
       <div className="controls">
         <div className="control-group">
           <label>Color:</label>
@@ -361,18 +393,41 @@ const Drawing = () => {
           />
         </div>
         <button className="clear-btn" onClick={clearCanvas}>Clear All</button>
+        <div className={`timer-display ${timeLeft <= 60 ? 'warning' : ''}`}>
+          ⏱ {formatTime(timeLeft)}
+        </div>
       </div>
-      <canvas
-        ref={canvasRef}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        className="drawing-canvas"
-      ></canvas>
-      <button className="submit-btn" onClick={SubmitDrawing}>
-        제출
-      </button>
+      <div style={{ position: 'relative' }}>
+        <canvas
+          ref={canvasRef}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          className="drawing-canvas"
+        ></canvas>
+        {timeExpired && (
+          <div className="timer-expired-overlay">
+            <div className="timer-expired-modal">
+              <h3>⏰ 시간 초과!</h3>
+              <p>어떻게 하시겠어요?</p>
+              <button className="submit-btn" onClick={SubmitDrawing}>제출하기</button>
+              <button className="restart-btn" onClick={handleRestart}>다시 그리기</button>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="bottom-row">
+        <input
+          className="title-input"
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="한마디 남기기..."
+          value={title}
+        />
+        <button className="submit-btn" onClick={SubmitDrawing}>
+          제출
+        </button>
+      </div>
     </div>
   );
 };

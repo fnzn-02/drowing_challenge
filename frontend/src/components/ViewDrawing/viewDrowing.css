@@ -29,12 +29,12 @@
 .reels-card {
     position: relative;
     width: 800px;
-    height: calc(100vh - 60px); 
-    flex-shrink: 0; 
-    background-color: #000000; 
-    scroll-snap-align: start; 
+    height: calc(100vh - 60px);
+    flex-shrink: 0;
+    background-color: #000000;
+    scroll-snap-align: start;
     overflow: hidden;
-    border-bottom: 1px solid var(--border); 
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -43,7 +43,7 @@
 /* 🚨 [추가] 이미지를 감싸는 기본 미디어 박스 트랜지션 처리 */
 .reels-media-box {
     width: 100%;
-    height: 450px;
+    height: 600px;
     transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     justify-content: center;
@@ -58,8 +58,8 @@
 
 .reels-image {
     width: 100%;
-    height: 100%; 
-    object-fit: cover; 
+    height: 100%;
+    object-fit: contain;
 }
 
 .medal-badge {
@@ -75,6 +75,7 @@
     z-index: 10;
 }
 .medal-badge.gold { background-color: #f59e0b; }
+.medal-badge.silver { background-color: #9ca3af; }
 .medal-badge.bronze { background-color: #b45309; }
 
 .reels-side-actions {
@@ -118,36 +119,39 @@
     left: 0;
     bottom: 0;
     width: 100%;
+    height: 100px;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
-    padding: 40px 30px 30px 30px;
+    padding: 16px 30px 16px 30px;
     color: #ffffff;
     box-sizing: border-box;
     text-align: left;
     z-index: 10;
-    pointer-events: none; /* 하단 텍스트 레이어가 댓글인풋 클릭을 방해하지 않도록 처리 */
+    pointer-events: none;
+    overflow: hidden;
 }
 
 .challenge-tag {
-    font-size: 14px;
-    color: #c084fc; 
+    font-size: 13px;
+    color: #c084fc;
     font-weight: 700;
-    margin-bottom: 6px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    margin-bottom: 4px;
 }
 
 .user-nickname {
     font-size: 16px;
     font-weight: 700;
-    margin-bottom: 8px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    margin-bottom: 4px;
+    color: #ffffff;
 }
 
 .drawing-comment {
     font-size: 14px;
-    color: #f3f4f6;
+    color: #e5e7eb;
     margin: 0;
     line-height: 1.5;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ==========================================================

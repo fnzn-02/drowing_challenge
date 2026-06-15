@@ -26,7 +26,7 @@ const TopBar = () => {
         <>
             <header className="top-bar">
                 <div className="top-bar-logo" onClick={() => navigate("/")}>
-                    🎨 DrawingMarket
+                    🎨 DrawingChallenge
                 </div>
                 <nav className="top-bar-menu">
                     {isLoggedIn ? (

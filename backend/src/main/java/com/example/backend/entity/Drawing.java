@@ -38,8 +38,11 @@ public class Drawing {
     @Column(length = 10)
     private String medal; // GOLD / SILVER / BRONZE / null
 
-    @OneToMany(mappedBy = "drawing", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "drawing", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
+
+    @OneToMany(mappedBy = "drawing", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

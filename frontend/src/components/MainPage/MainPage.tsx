@@ -16,6 +16,7 @@ interface Challenges {
 const MainPage = () => {
     const [challenges, setChallenges] = useState<Challenges[]>([]);
     const [search, setSearch] = useState("");
+    const [tab, setTab] = useState<"ongoing" | "ended">("ongoing");
     const navigate = useNavigate();
 
     const filtered = challenges.filter(c =>
@@ -26,19 +27,22 @@ const MainPage = () => {
     useEffect(() => {
         const fetchChallenge = async () => {
             try {
-                const response = await api.get('http://localhost:8080/challenges');
+                const url = tab === "ongoing"
+                    ? 'http://localhost:8080/challenges'
+                    : 'http://localhost:8080/challenges/ended';
+                const response = await api.get(url);
                 setChallenges(response.data);
             } catch (error) {
                 console.error("데이터 로딩 실패:", error);
             }
         };
         fetchChallenge();
-    }, []);
+    }, [tab]);
 
     return (
         <div className="main-page-container">
             <div className="page-header">
-                <h1 className="page-title">🏆 진행 중인 챌린지</h1>
+                <h1 className="page-title">🏆 챌린지</h1>
                 <input
                     className="challenge-search"
                     type="text"
@@ -46,6 +50,16 @@ const MainPage = () => {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
+            </div>
+            <div className="challenge-tabs">
+                <button
+                    className={`challenge-tab ${tab === "ongoing" ? "active" : ""}`}
+                    onClick={() => { setTab("ongoing"); setSearch(""); }}
+                >진행 중</button>
+                <button
+                    className={`challenge-tab ${tab === "ended" ? "active" : ""}`}
+                    onClick={() => { setTab("ended"); setSearch(""); }}
+                >기간 종료</button>
             </div>
             <div className="challenge-list">
                 {filtered.length === 0 && <p className="no-result">검색 결과가 없습니다.</p>}

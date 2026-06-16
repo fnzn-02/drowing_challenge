@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import "./Drawing.css";
 
-const API = "http://localhost:8080";
+const API = "http://13.125.216.43:8080";
 
 type Tool = 'pen' | 'eraser' | 'fill' | 'picker';
 
@@ -24,9 +24,7 @@ const Drawing = () => {
     index: -1,
   });
 
-  const [title, setTitle] = useState(() => {
-    return sessionStorage.getItem("savedTitle") || "";
-  });
+  const [title, setTitle] = useState("");
 
   const [timeLeft, setTimeLeft] = useState(300);
   const [timeExpired, setTimeExpired] = useState(false);
@@ -128,26 +126,13 @@ const Drawing = () => {
         context.lineWidth = lineWidth;
         ctxRef.current = context;
 
-        const savedDrawing = sessionStorage.getItem("savedDrawing");
-        if (savedDrawing) {
-          const img = new Image();
-          img.src = savedDrawing;
-          img.onload = () => {
-            context.drawImage(img, 0, 0);
-            setHistoryState({
-              list: [savedDrawing],
-              index: 0,
-            });
-          };
-        } else {
-          context.fillStyle = "#ffffff";
-          context.fillRect(0, 0, canvas.width, canvas.height);
-          const initialData = canvas.toDataURL();
-          setHistoryState({
-            list: [initialData],
-            index: 0,
-          });
-        }
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        const initialData = canvas.toDataURL();
+        setHistoryState({
+          list: [initialData],
+          index: 0,
+        });
       }
     }
   }, []);

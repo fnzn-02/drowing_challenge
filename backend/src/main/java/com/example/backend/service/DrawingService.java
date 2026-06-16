@@ -39,6 +39,9 @@ public class DrawingService {
     private final DrawingRepository drawingRepository;
     private final ChallengeRepository challengeRepository;
 
+    private static final String UPLOAD_DIR = "/home/ubuntu/uploads/";
+    private static final String BASE_URL = "http://13.125.216.43/uploads/";
+
     /**
      * 그림 제출 처리.
      *
@@ -76,18 +79,16 @@ public class DrawingService {
             throw new IllegalArgumentException("이미 그림을 제출했습니다.");
         }
 
-        // 4. 이미지 파일 저장 (/uploads 폴더)
-        // UUID로 파일명을 무작위화하여 동일한 파일명 충돌 방지
-        String uploadDir = System.getProperty("user.dir") + "/uploads/";
+        // 4. EC2 로컬에 이미지 저장
         String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-        Files.createDirectories(filePath.getParent()); // 폴더가 없으면 생성
-        Files.write(filePath, imageFile.getBytes());   // 파일 바이트 기록
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+        Files.copy(imageFile.getInputStream(), uploadPath.resolve(fileName));
+        String imageUrl = BASE_URL + fileName;
 
         // 5. DB 저장
-        // medal은 챌린지 종료 시 스케줄러가 자동으로 부여하므로 초기값은 null
         Drawing drawing = new Drawing(null, challenge, user,
-                "/uploads/" + fileName, comment, 0, null, null, null, null);
+                imageUrl, comment, 0, null, null, null, null);
         Drawing saved = drawingRepository.save(drawing);
 
         log.info("[DrawingService] 그림 제출 완료 - drawingId: {}, imagePath: {}", saved.getId(), saved.getImagePath());
@@ -164,7 +165,7 @@ public class DrawingService {
      * @param drawingId  삭제할 그림의 ID
      * @param loginUser  현재 로그인된 유저 (세션에서 가져옴)
      */
-    public void deleteDrawing(Long drawingId, User loginUser) {
+    public void deleteDrawing(Long drawingId, User loginUser) throws IOException {
         log.info("[DrawingService] 그림 삭제 요청 - drawingId: {}, requestUserId: {}", drawingId, loginUser.getId());
 
         Drawing drawing = drawingRepository.findById(drawingId)
@@ -176,6 +177,8 @@ public class DrawingService {
             throw new IllegalArgumentException("본인 그림만 삭제할 수 있습니다.");
         }
 
+        String fileName = drawing.getImagePath().substring(drawing.getImagePath().lastIndexOf("/") + 1);
+        Files.deleteIfExists(Paths.get(UPLOAD_DIR + fileName));
         drawingRepository.delete(drawing);
         log.info("[DrawingService] 그림 삭제 완료 - drawingId: {}", drawingId);
     }

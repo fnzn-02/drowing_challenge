@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import './Signup.css'
 
-const API = 'http://localhost:8080'
+const API = 'http://13.125.216.43:8080'
 
 function Signup() {
   const navigate = useNavigate()

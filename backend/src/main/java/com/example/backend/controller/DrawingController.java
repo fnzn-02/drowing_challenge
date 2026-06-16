@@ -177,7 +177,12 @@ public class DrawingController {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
 
-        drawingService.deleteDrawing(id, loginUser);
+        try {
+            drawingService.deleteDrawing(id, loginUser);
+        } catch (java.io.IOException e) {
+            log.error("[DrawingController] 파일 삭제 오류 - drawingId: {}", id, e);
+            return ResponseEntity.status(500).body("파일 삭제 중 오류가 발생했습니다.");
+        }
 
         log.info("[DrawingController] 그림 삭제 응답 완료 - drawingId: {}, userId: {}", id, loginUser.getId());
         return ResponseEntity.ok("그림 삭제 성공");

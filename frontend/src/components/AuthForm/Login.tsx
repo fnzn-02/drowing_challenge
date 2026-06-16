@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import './Login.css'
 
-const API = 'http://localhost:8080'
+const API = 'http://13.125.216.43:8080'
 
 function Login() {
   const [email, setEmail] = useState('')

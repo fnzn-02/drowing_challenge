@@ -13,13 +13,13 @@ const TopBar = () => {
     const isActive = (path: string) => location.pathname === path ? "active" : "";
 
     useEffect(() => {
-        axios.get('http://localhost:8080/mypage', { withCredentials: true })
+        axios.get('http://13.125.216.43:8080/mypage', { withCredentials: true })
             .then(() => setIsLoggedIn(true))
             .catch(() => setIsLoggedIn(false))
     }, [location])
 
     const logout = () => {
-        axios.post('http://localhost:8080/auth/logout', {}, { withCredentials: true })
+        axios.post('http://13.125.216.43:8080/auth/logout', {}, { withCredentials: true })
             .then(() => { setIsLoggedIn(false); navigate('/login') })
     }
     return (
